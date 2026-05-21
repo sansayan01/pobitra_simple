@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin Dashboard - Pobitra Ghee</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/admin.css">
+</head>
+<body>
+
+  <!-- Login Page -->
+  <div id="loginPage" class="login-page">
+    <div class="login-card">
+      <div class="login-card__logo">🧈</div>
+      <h1>Admin Login</h1>
+      <p>Sign in to manage your store</p>
+      <form id="loginForm" class="login-form">
+        <div class="form-group">
+          <label for="username">Username</label>
+          <input type="text" id="username" name="username" required autocomplete="username">
+        </div>
+        <div class="form-group">
+          <label for="password">Password</label>
+          <input type="password" id="password" name="password" required autocomplete="current-password">
+        </div>
+        <button type="submit">Sign In</button>
+      </form>
+      <div id="loginError" class="error-message">Invalid username or password</div>
+    </div>
+  </div>
+
+  <!-- Admin Dashboard -->
+  <div id="adminDashboard" class="admin-layout" style="display: none;">
+
+    <!-- Sidebar -->
+    <aside class="sidebar">
+      <div class="sidebar__header">
+        <div class="sidebar__logo">
+          <div class="sidebar__logo-icon">🧈</div>
+          <div class="sidebar__logo-text">Pobitra <span>Ghee</span></div>
+        </div>
+      </div>
+
+      <nav class="sidebar__nav">
+        <a href="#" class="sidebar__nav-item active" data-page="dashboard">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+          Dashboard
+        </a>
+        <a href="#" class="sidebar__nav-item" data-page="products">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg>
+          Products
+        </a>
+        <a href="#" class="sidebar__nav-item" data-page="pricing">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+          Pricing
+        </a>
+        <a href="#" class="sidebar__nav-item" data-page="reviews">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v10z"/></svg>
+          Reviews
+        </a>
+        <a href="#" class="sidebar__nav-item" data-page="media">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg>
+          Media Library
+        </a>
+        <a href="#" class="sidebar__nav-item" data-page="settings">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M12 1v6m0 6v6m4.22-10.22l4.24-4.24M6.34 6.34L2.1 2.1m17.8 17.8l-4.24-4.24M6.34 17.66l-4.24 4.24M23 12h-6m-6 0H1m17.66-5.66l4.24-4.24M2.1 2.1l4.24 4.24"/></svg>
+          Settings
+        </a>
+      </nav>
+
+      <div class="sidebar__footer">
+        <div class="sidebar__logout" id="logoutBtn">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9"/></svg>
+          Logout
+        </div>
+      </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main-content">
+
+      <!-- Dashboard Header -->
+      <header class="admin-header">
+        <h1 class="admin-header__title" id="pageTitle">Dashboard</h1>
+        <div class="admin-header__actions">
+          <span id="adminUser">Admin</span>
+        </div>
+      </header>
+
+      <!-- Dashboard Page -->
+      <div id="page--dashboard" class="content-section active">
+        <div class="stats-grid">
+          <div class="stat-card">
+            <div class="stat-card__icon stat-card__icon--gold">📦</div>
+            <div class="stat-card__value" id="statProducts">5</div>
+            <div class="stat-card__label">Total Products</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-card__icon stat-card__icon--blue">⭐</div>
+            <div class="stat-card__value" id="statTotalReviews">3</div>
+            <div class="stat-card__label">Total Reviews</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-card__icon stat-card__icon--green">✅</div>
+            <div class="stat-card__value" id="statApproved">2</div>
+            <div class="stat-card__label">Approved Reviews</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-card__icon stat-card__icon--orange">⏳</div>
+            <div class="stat-card__value" id="statPending">1</div>
+            <div class="stat-card__label">Pending Reviews</div>
+          </div>
+        </div>
+
+        <h3 style="margin-bottom: 16px; font-size: 1.2rem;">Recent Reviews</h3>
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Customer</th>
+              <th>Rating</th>
+              <th>Comment</th>
+              <th>Status</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="recentReviewsTable">
+            <!-- Populated by JS -->
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Products Page -->
+      <div id="page--products" class="content-section">
+        <div class="section-header">
+          <h2>Products</h2>
+          <button class="btn btn--primary" id="addProductBtn">+ Add Product</button>
+        </div>
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Product</th>
+              <th>Weight</th>
+              <th>Price</th>
+              <th>Popular</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="productsTable">
+            <!-- Populated by JS -->
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Pricing Page -->
+      <div id="page--pricing" class="content-section">
+        <div class="section-header">
+          <h2>Pricing</h2>
+          <button class="btn btn--primary" id="addPricingBtn">+ Add Pricing Tier</button>
+        </div>
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Pack Size</th>
+              <th>Price</th>
+              <th>Delivery</th>
+              <th>COD Extra</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="pricingTable">
+            <!-- Populated by JS -->
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Reviews Page -->
+      <div id="page--reviews" class="content-section">
+        <div class="section-header">
+          <h2>Reviews</h2>
+        </div>
+        <div class="tabs">
+          <button class="tab active" data-filter="all">All</button>
+          <button class="tab" data-filter="approved">Approved</button>
+          <button class="tab" data-filter="pending">Pending</button>
+        </div>
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Customer</th>
+              <th>Rating</th>
+              <th>Comment</th>
+              <th>Date</th>
+              <th>Status</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="reviewsTable">
+            <!-- Populated by JS -->
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Media Page -->
+      <div id="page--media" class="content-section">
+        <div class="section-header">
+          <h2>Media Library</h2>
+        </div>
+        <p style="color: var(--admin-text-muted); margin-bottom: 24px;">
+          Upload images and videos. Supports: JPG, PNG, WebP, MP4, MOV (up to 50MB)
+        </p>
+        <div class="form-group">
+          <div class="drop-zone" id="dropZone" style="border: 2px dashed var(--admin-border); border-radius: 12px; padding: 48px; text-align: center; cursor: pointer; transition: all 0.3s ease; color: var(--admin-text-muted);">
+            <div style="font-size: 48px; margin-bottom: 16px;">📁</div>
+            <p>Drag & drop files here, or click to browse</p>
+            <input type="file" id="fileInput" accept="image/jpeg,image/png,image/webp,video/mp4,video/quicktime" multiple style="display: none;">
+          </div>
+        </div>
+        <div id="mediaGrid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 16px; margin-top: 24px;">
+          <!-- Populated by JS -->
+        </div>
+      </div>
+
+      <!-- Settings Page -->
+      <div id="page--settings" class="content-section">
+        <div class="section-header">
+          <h2>Settings</h2>
+        </div>
+        <form id="settingsForm">
+          <div class="form-group">
+            <label for="siteName">Site Name</label>
+            <input type="text" id="siteName" value="Pobitra Ghee">
+          </div>
+          <div class="form-group">
+            <label for="tagline">Tagline</label>
+            <input type="text" id="tagline" value="Pure Tradition, Pure Taste">
+          </div>
+          <div class="form-group">
+            <label for="phone">Phone Number</label>
+            <input type="text" id="phone" value="+91 93394 93294">
+          </div>
+          <div class="form-group">
+            <label for="whatsapp">WhatsApp Number</label>
+            <input type="text" id="whatsapp" value="+919339493294">
+          </div>
+          <div class="form-group">
+            <label for="email">Email</label>
+            <input type="email" id="email" value="pobitraghee@gmail.com">
+          </div>
+          <div class="form-group">
+            <label for="address">Address</label>
+            <textarea id="address">Vill + Post: Daspara, PS: Swarupnagar, North 24 Pgs, 743286, West Bengal, India</textarea>
+          </div>
+          <div class="form-group">
+            <label for="aboutUs">About Us</label>
+            <textarea id="aboutUs">Pobitra Ghee is a labor of love from a mother-daughter duo who believe in the power of traditional food.</textarea>
+          </div>
+          <button type="submit" class="btn btn--primary">Save Settings</button>
+        </form>
+      </div>
+
+    </main>
+  </div>
+
+  <!-- Product Modal -->
+  <div id="productModal" class="modal-overlay">
+    <div class="modal">
+      <div class="modal__header">
+        <h3 id="productModalTitle">Add Product</h3>
+        <button class="modal__close" onclick="closeModal('productModal')">&times;</button>
+      </div>
+      <div class="modal__body">
+        <form id="productForm">
+          <input type="hidden" id="productId">
+          <div class="form-group">
+            <label for="productName">Product Name</label>
+            <input type="text" id="productName" required>
+          </div>
+          <div class="form-group">
+            <label for="productWeight">Weight</label>
+            <input type="text" id="productWeight" required placeholder="e.g., 400g">
+          </div>
+          <div class="form-group">
+            <label for="productPrice">Price (₹)</label>
+            <input type="number" id="productPrice" required min="0">
+          </div>
+          <div class="form-group">
+            <label for="productDesc">Description</label>
+            <textarea id="productDesc" required></textarea>
+          </div>
+          <div class="form-group">
+            <label for="productImage">Image URL</label>
+            <input type="text" id="productImage" placeholder="assets/images/ghee-400g.jpg">
+          </div>
+          <div class="form-group">
+            <label for="productVideo">Video URL</label>
+            <input type="text" id="productVideo" placeholder="Optional">
+          </div>
+          <div class="form-group">
+            <label>
+              <input type="checkbox" id="productPopular"> Mark as Most Popular
+            </label>
+          </div>
+        </form>
+      </div>
+      <div class="modal__footer">
+        <button class="btn btn--secondary" onclick="closeModal('productModal')">Cancel</button>
+        <button class="btn btn--primary" id="saveProductBtn">Save Product</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Pricing Modal -->
+  <div id="pricingModal" class="modal-overlay">
+    <div class="modal">
+      <div class="modal__header">
+        <h3 id="pricingModalTitle">Add Pricing Tier</h3>
+        <button class="modal__close" onclick="closeModal('pricingModal')">&times;</button>
+      </div>
+      <div class="modal__body">
+        <form id="pricingForm">
+          <input type="hidden" id="pricingId">
+          <div class="form-group">
+            <label for="packSize">Pack Size</label>
+            <input type="text" id="packSize" required placeholder="e.g., 400g">
+          </div>
+          <div class="form-group">
+            <label for="packPrice">Price (₹)</label>
+            <input type="number" id="packPrice" required min="0">
+          </div>
+          <div class="form-group">
+            <label for="deliveryCharge">Delivery Charge (₹)</label>
+            <input type="number" id="deliveryCharge" value="0" min="0">
+          </div>
+          <div class="form-group">
+            <label>
+              <input type="checkbox" id="codExtra"> COD Extra Charge
+            </label>
+          </div>
+          <div class="form-group" id="codAmountGroup" style="display: none;">
+            <label for="codAmount">COD Amount (₹)</label>
+            <input type="number" id="codAmount" value="60" min="0">
+          </div>
+        </form>
+      </div>
+      <div class="modal__footer">
+        <button class="btn btn--secondary" onclick="closeModal('pricingModal')">Cancel</button>
+        <button class="btn btn--primary" id="savePricingBtn">Save Pricing</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="js/data.js"></script>
+  <script src="js/utils.js"></script>
+  <script src="js/admin.js"></script>
+
+</body>
+</html>
