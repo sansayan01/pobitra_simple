@@ -726,14 +726,19 @@ function initJarInteraction() {
 
   scene.addEventListener('mouseleave', resetTilt);
 
-  scene.addEventListener('touchmove', function(e) {
-    if (e.touches.length === 1) {
-      e.preventDefault();
-      updateTilt(e.touches[0].clientX, e.touches[0].clientY);
-    }
-  }, { passive: false });
+  // Skip touch-tilt on touch devices: it forces preventDefault and breaks
+  // vertical scrolling when the user's finger lands on the jar.
+  const supportsHover = window.matchMedia('(hover: hover)').matches;
+  if (supportsHover) {
+    scene.addEventListener('touchmove', function(e) {
+      if (e.touches.length === 1) {
+        e.preventDefault();
+        updateTilt(e.touches[0].clientX, e.touches[0].clientY);
+      }
+    }, { passive: false });
 
-  scene.addEventListener('touchend', resetTilt);
+    scene.addEventListener('touchend', resetTilt);
+  }
 }
 
 // ============ Utility: Clamp ============
@@ -745,6 +750,16 @@ function clamp(value, min, max) {
 function initHeroMotionGraphics() {
   const canvas = document.getElementById('heroCanvas');
   if (!canvas) return;
+
+  // Skip the canvas RAF loop on phones and when the user prefers reduced
+  // motion. The CSS at <576px also hides the element; this avoids running
+  // the animation for nothing.
+  const isSmallScreen = window.matchMedia('(max-width: 767px)').matches;
+  const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if (isSmallScreen || reducedMotion) {
+    canvas.style.display = 'none';
+    return;
+  }
 
   const ctx = canvas.getContext('2d');
   let width, height;

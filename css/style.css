@@ -1061,9 +1061,10 @@ table {
   100% { transform: translateY(-10px) rotate(1deg); }
 }
 
-@media (max-width: 480px) {
+@media (max-width: 380px) {
   .hero__floating-badge {
-    display: none; /* Hide floating badges on narrow screens */
+    /* Hide only on the smallest phones to keep the jar uncluttered */
+    display: none;
   }
 }
 
@@ -1716,6 +1717,7 @@ table {
   max-width: 1100px;
   margin: 0 auto;
   align-items: center;
+  overflow: hidden;
 }
 
 @media (min-width: 992px) {
@@ -2145,25 +2147,18 @@ table {
 
 .selector__size-track {
   display: flex;
+  flex-wrap: wrap;
   gap: var(--space-2);
   background: rgba(255, 255, 255, 0.05);
   border: 1px solid rgba(255, 255, 255, 0.08);
-  padding: 4px;
-  border-radius: var(--radius-full);
-  overflow-x: auto;
-  scrollbar-width: none;
-  -ms-overflow-style: none;
-  -webkit-overflow-scrolling: touch;
-}
-
-.selector__size-track::-webkit-scrollbar {
-  display: none;
+  padding: 6px;
+  border-radius: var(--radius-xl);
 }
 
 .selector__size-pill {
-  flex: 1 0 auto;
-  min-width: 65px;
-  height: 48px;
+  flex: 1 1 auto;
+  min-width: 58px;
+  height: 44px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -3297,6 +3292,43 @@ table {
     15. RESPONSIVE DESIGN
     ============================================ */
 
+/* Tablet & mobile reorder (<992px): show jar between tagline and subtext.
+   Uses `display: contents` to flatten .hero__left so its children participate
+   in the same flex layout as .hero__right. */
+@media (max-width: 991px) {
+  .hero__container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--space-5);
+    text-align: center;
+  }
+
+  .hero__left {
+    display: contents;
+  }
+
+  .hero__trust-badge   { order: 1; }
+  .hero__tagline       { order: 2; }
+  .hero__right         { order: 3; }
+  .hero__subtext       { order: 4; }
+  .hero__cta-group     { order: 5; }
+  .hero__social-proof  { order: 6; }
+
+  /* The flex `gap` controls vertical rhythm; clear the per-block margins. */
+  .hero__trust-badge,
+  .hero__tagline,
+  .hero__subtext,
+  .hero__cta-group {
+    margin-bottom: 0;
+  }
+
+  .hero__left {
+    /* contents element — text alignment inherits via parent */
+    text-align: center;
+  }
+}
+
 /* Mobile First - Base styles (0px to 575px) */
 @media (max-width: 575px) {
   /* Container - tighter padding */
@@ -3305,90 +3337,60 @@ table {
     padding-right: var(--space-4);
   }
 
-  /* Hero Section */
+  /* Hero Section — tightened spacing on phones */
   .hero {
     min-height: 100dvh;
-    padding: calc(var(--space-20) + env(safe-area-inset-top, 0px)) 0 var(--space-20);
+    padding: calc(var(--space-12) + env(safe-area-inset-top, 0px)) var(--space-4) var(--space-10);
     perspective: 800px;
   }
 
-  .hero__content {
-    padding: var(--space-4) var(--space-4);
+  .hero__container {
+    /* Slightly tighter gaps on narrow phones */
+    gap: var(--space-4);
+    padding-top: 0;
+    padding-bottom: 0;
   }
 
   .hero__trust-badge {
     font-size: 10px;
     padding: var(--space-1) var(--space-3);
-    margin-bottom: var(--space-4);
   }
 
+  /* Visual / Jar — proportional via --jar-w / --jar-h cascade */
   .hero__visual {
-    margin-bottom: var(--space-4);
+    width: 100%;
+    max-width: 320px;
+    height: 240px;
+    margin: 0 auto;
   }
 
   .hero__jar-scene {
-    width: 130px;
-    height: 150px;
+    width: 100%;
+    height: 100%;
   }
 
   .hero__jar {
-    width: 80px;
-    height: 105px;
-  }
-
-  .hero__jar-body {
-    width: 72px;
-    height: 82px;
-  }
-
-  .hero__jar-lid {
-    width: 58px;
-    height: 15px;
-    top: 7px;
-  }
-
-  .hero__jar-lid-highlight {
-    width: 20px;
-    height: 2px;
-  }
-
-  .hero__jar-label {
-    padding: 5px 10px;
-  }
-
-  .hero__jar-label-brand {
-    font-size: 12px;
-  }
-
-  .hero__jar-label-type {
-    font-size: 7px;
-  }
-
-  .hero__jar-reflection {
-    width: 10px;
-    height: 40px;
-    left: 13px;
-    top: 18px;
-  }
-
-  .hero__jar-shadow {
-    width: 56px;
-    height: 8px;
+    --jar-w: 120px;
+    --jar-h: 156px;
   }
 
   .hero__jar-glow {
-    inset: -20px;
+    inset: calc(var(--jar-w) * -0.2);
   }
 
   .hero__tagline {
-    font-size: clamp(1.75rem, 7vw, 2.5rem);
-    margin-bottom: var(--space-4);
+    font-size: clamp(1.85rem, 7.5vw, 2.5rem);
+    line-height: 1.18;
   }
 
   .hero__subtext {
     font-size: var(--text-sm);
-    margin-bottom: var(--space-6);
     line-height: 1.6;
+    max-width: 38ch;
+  }
+
+  .hero__cta-group {
+    width: 100%;
   }
 
   .hero__cta {
@@ -3416,17 +3418,35 @@ table {
     font-size: var(--text-xs);
   }
 
+  /* Scroll indicator overlaps content on phones — hide it */
   .hero__scroll-indicator {
-    bottom: var(--space-6);
+    display: none;
   }
 
-  .hero__scroll-text {
-    font-size: 10px;
+  /* Floating parallax badges — keep them visible, just compress */
+  .hero__floating-badge {
+    padding: 4px 10px;
+    border-radius: 999px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4), 0 0 10px rgba(218, 165, 32, 0.08);
   }
 
-  .hero__scroll-arrow svg {
-    width: 20px;
-    height: 20px;
+  .hero__floating-badge-icon {
+    font-size: 12px;
+  }
+
+  .hero__floating-badge-text {
+    font-size: 9.5px;
+    letter-spacing: 0.02em;
+  }
+
+  .float-badge--1 { top: 4%;    left: 0;       }
+  .float-badge--2 { bottom: 30%; right: 0;     }
+  .float-badge--3 { bottom: 6%;  left: 6%;     }
+
+  /* Drop heavy background effects on phones for performance */
+  .hero__canvas,
+  .hero__aura {
+    display: none;
   }
 
   /* Marquee */
@@ -3469,6 +3489,11 @@ table {
     font-size: var(--text-sm);
   }
 
+  /* Products Collection */
+  .products {
+    padding: var(--space-12) var(--space-4);
+  }
+
   .products__header {
     margin-bottom: var(--space-8);
   }
@@ -3490,17 +3515,17 @@ table {
   }
 
   .selector__visual {
-    min-height: 280px;
-    padding: var(--space-6) var(--space-4);
+    min-height: 260px;
+    padding: var(--space-5) var(--space-3);
   }
 
   .selector__jar-glow {
-    width: 220px;
-    height: 220px;
+    width: 200px;
+    height: 200px;
   }
 
   .selector__config-card {
-    padding: var(--space-5);
+    padding: var(--space-4);
   }
 
   .selector__title {
@@ -3509,17 +3534,23 @@ table {
 
   .selector__description {
     font-size: var(--text-sm);
-    min-height: 44px;
+    min-height: auto;
   }
 
   .selector__price {
-    font-size: var(--text-3xl);
+    font-size: var(--text-2xl);
   }
 
   .selector__size-pill {
-    min-width: 56px;
-    height: 44px;
-    font-size: var(--text-xs);
+    min-width: 50px;
+    height: 40px;
+    font-size: 11px;
+    padding: 0 var(--space-2);
+  }
+
+  .selector__size-track {
+    padding: 4px;
+    gap: var(--space-1);
   }
 
   .selector__checkout-btn {
@@ -3533,6 +3564,11 @@ table {
 
   .selector__qty-group {
     max-width: 100%;
+  }
+
+  .selector__badge {
+    font-size: 10px;
+    padding: 3px 8px;
   }
 
   /* Subscription Banner */
