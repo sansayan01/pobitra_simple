@@ -1031,7 +1031,6 @@ function handleOrderSubmit() {
     { val: name, label: 'Full Name' },
     { val: phone, label: 'WhatsApp Number' },
     { val: addrLine1, label: 'Address Line 1' },
-    { val: addrLine2, label: 'Address Line 2' },
     { val: addrPincode, label: 'Pincode' },
     { val: addrCity, label: 'City' },
     { val: addrState, label: 'State' },
@@ -1055,7 +1054,8 @@ function handleOrderSubmit() {
   const price = selectedOption.dataset.price;
 
   // Build full address
-  let fullAddress = `${addrLine1}, ${addrLine2}`;
+  let fullAddress = addrLine1;
+  if (addrLine2) fullAddress += `, ${addrLine2}`;
   if (addrLandmark) fullAddress += `, Landmark: ${addrLandmark}`;
   fullAddress += `, ${addrCity}, ${addrState} - ${addrPincode}`;
 
