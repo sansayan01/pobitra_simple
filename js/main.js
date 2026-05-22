@@ -1093,6 +1093,19 @@ Thank you for your order! 🙏
   const settings = SettingsStore.getAll();
   const whatsappNumber = settings.whatsapp || '+919339493294';
 
+  // Save order to Supabase (fire-and-forget)
+  if (typeof window.saveOrder === 'function') {
+    window.saveOrder({
+      customer_name: name,
+      customer_phone: phone,
+      items: [{ name: 'Pobitra Ghee', weight: packSize, price: parseFloat(price) || 0, qty: parseInt(quantity) || 1 }],
+      total: parseFloat((summaryTotal || '').replace(/[^0-9.]/g, '')) || 0,
+      payment_method: paymentMethod.includes('Cash') ? 'cod' : 'prepaid',
+      address: { line1: addrLine1, line2: addrLandmark || '', city: addrCity, state: addrState, pincode: addrPincode },
+      status: 'pending'
+    }).catch(function(err) { console.error('Failed to save order:', err); });
+  }
+
   // Open WhatsApp
   const whatsappUrl = generateWhatsAppUrl(whatsappNumber, message);
   window.open(whatsappUrl, '_blank');
@@ -1309,13 +1322,18 @@ function handleReviewSubmit() {
     return;
   }
 
-  // Save review to pending
+  // Save review to localStorage
   ReviewStore.add({
     name: name,
     rating: rating,
     comment: comment,
     image: ''
   });
+
+  // Also save to Supabase (fire-and-forget)
+  if (typeof window.saveReview === 'function') {
+    window.saveReview({ name: name, rating: rating, comment: comment, image: '' }).catch(function(err) { console.error('Failed to save review:', err); });
+  }
 
   // Show thank you message
   const form = document.getElementById('submitReviewForm');

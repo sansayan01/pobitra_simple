@@ -1,22 +1,46 @@
 /**
  * Pobitra Ghee - Admin Dashboard JavaScript
- * Handles all admin functionality including navigation, CRUD operations, and authentication
+ * Supabase-backed admin panel with async data operations
  */
 
 // ============ Variables ============
 let currentPage = 'dashboard';
 let currentReviewFilter = 'all';
+let currentOrderFilter = 'all';
 
 // ============ Initialization ============
-document.addEventListener('DOMContentLoaded', function() {
-  checkAuthStatus();
+document.addEventListener('DOMContentLoaded', async function() {
+  await checkAuthStatus();
   setupEventListeners();
   setupDropZone();
 });
 
+// ============ Toast Notifications ============
+function toast(message, type = 'success') {
+  const container = document.getElementById('toastContainer');
+  if (!container) return;
+  const el = document.createElement('div');
+  el.className = 'toast-admin toast-admin--' + type;
+  el.innerHTML = '<span>' + escapeHtml(message) + '</span><button onclick="this.parentElement.remove()">&times;</button>';
+  container.appendChild(el);
+  requestAnimationFrame(function() { el.classList.add('show'); });
+  setTimeout(function() {
+    el.classList.remove('show');
+    setTimeout(function() { el.remove(); }, 300);
+  }, 4000);
+}
+
+// ============ Loading Helpers ============
+function showLoading(tableId) {
+  var tbody = document.getElementById(tableId);
+  if (tbody) {
+    tbody.innerHTML = '<tr><td colspan="10" style="text-align:center;padding:32px;color:var(--admin-text-muted)"><div class="spinner"></div> Loading...</td></tr>';
+  }
+}
+
 // ============ Authentication ============
-function checkAuthStatus() {
-  if (AuthStore.isLoggedIn()) {
+async function checkAuthStatus() {
+  if (await AuthStore.isLoggedIn()) {
     showDashboard();
   } else {
     showLoginPage();
@@ -32,242 +56,261 @@ function showDashboard() {
   document.getElementById('loginPage').style.display = 'none';
   document.getElementById('adminDashboard').style.display = 'grid';
   updateStats();
-  updateRecentReviews();
+  updateRecentOrders();
 }
 
 // ============ Event Listeners ============
 function setupEventListeners() {
-  // Login form
-  const loginForm = document.getElementById('loginForm');
-  if (loginForm) {
-    loginForm.addEventListener('submit', handleLogin);
-  }
+  document.getElementById('loginForm').addEventListener('submit', handleLogin);
+  document.getElementById('logoutBtn').addEventListener('click', handleLogout);
 
-  // Logout button
-  const logoutBtn = document.getElementById('logoutBtn');
-  if (logoutBtn) {
-    logoutBtn.addEventListener('click', handleLogout);
-  }
-
-  // Navigation
-  const navItems = document.querySelectorAll('.sidebar__nav-item');
-  navItems.forEach(item => {
+  document.querySelectorAll('.sidebar__nav-item').forEach(function(item) {
     item.addEventListener('click', function(e) {
       e.preventDefault();
-      const page = this.dataset.page;
-      if (page) {
-        navigateTo(page);
-      }
+      var page = this.dataset.page;
+      if (page) navigateTo(page);
     });
   });
 
-  // Add Product button
-  const addProductBtn = document.getElementById('addProductBtn');
-  if (addProductBtn) {
-    addProductBtn.addEventListener('click', function() {
-      openProductModal();
-    });
-  }
+  document.getElementById('addProductBtn').addEventListener('click', function() { openProductModal(); });
+  document.getElementById('saveProductBtn').addEventListener('click', handleSaveProduct);
+  document.getElementById('addPricingBtn').addEventListener('click', function() { openPricingModal(); });
+  document.getElementById('savePricingBtn').addEventListener('click', handleSavePricing);
 
-  // Save Product button
-  const saveProductBtn = document.getElementById('saveProductBtn');
-  if (saveProductBtn) {
-    saveProductBtn.addEventListener('click', handleSaveProduct);
-  }
-
-  // Add Pricing button
-  const addPricingBtn = document.getElementById('addPricingBtn');
-  if (addPricingBtn) {
-    addPricingBtn.addEventListener('click', function() {
-      openPricingModal();
-    });
-  }
-
-  // Save Pricing button
-  const savePricingBtn = document.getElementById('savePricingBtn');
-  if (savePricingBtn) {
-    savePricingBtn.addEventListener('click', handleSavePricing);
-  }
-
-  // Review filter tabs
-  const tabs = document.querySelectorAll('.tab');
-  tabs.forEach(tab => {
+  document.querySelectorAll('.tab[data-filter]').forEach(function(tab) {
     tab.addEventListener('click', function() {
-      tabs.forEach(t => t.classList.remove('active'));
+      document.querySelectorAll('.tab[data-filter]').forEach(function(t) { t.classList.remove('active'); });
       this.classList.add('active');
       currentReviewFilter = this.dataset.filter;
       updateReviewsTable();
     });
   });
 
-  // Settings form
-  const settingsForm = document.getElementById('settingsForm');
-  if (settingsForm) {
-    settingsForm.addEventListener('submit', handleSaveSettings);
-  }
-
-  // COD extra checkbox
-  const codExtra = document.getElementById('codExtra');
-  if (codExtra) {
-    codExtra.addEventListener('change', function() {
-      document.getElementById('codAmountGroup').style.display = this.checked ? 'block' : 'none';
+  document.querySelectorAll('.tab[data-order-filter]').forEach(function(tab) {
+    tab.addEventListener('click', function() {
+      document.querySelectorAll('.tab[data-order-filter]').forEach(function(t) { t.classList.remove('active'); });
+      this.classList.add('active');
+      currentOrderFilter = this.dataset.orderFilter;
+      updateOrdersTable();
     });
-  }
+  });
+
+  document.getElementById('settingsForm').addEventListener('submit', handleSaveSettings);
+
+  document.getElementById('codExtra').addEventListener('change', function() {
+    document.getElementById('codAmountGroup').style.display = this.checked ? 'block' : 'none';
+  });
 }
 
 // ============ Navigation ============
 function navigateTo(page) {
   currentPage = page;
 
-  // Update sidebar active state
-  document.querySelectorAll('.sidebar__nav-item').forEach(item => {
-    item.classList.remove('active');
-    if (item.dataset.page === page) {
-      item.classList.add('active');
-    }
+  document.querySelectorAll('.sidebar__nav-item').forEach(function(item) {
+    item.classList.toggle('active', item.dataset.page === page);
   });
 
-  // Hide all content sections
-  document.querySelectorAll('.content-section').forEach(section => {
+  document.querySelectorAll('.content-section').forEach(function(section) {
     section.classList.remove('active');
   });
 
-  // Show selected content section
-  const targetSection = document.getElementById('page--' + page);
-  if (targetSection) {
-    targetSection.classList.add('active');
-  }
+  var target = document.getElementById('page--' + page);
+  if (target) target.classList.add('active');
 
-  // Update page title
-  const pageTitles = {
-    'dashboard': 'Dashboard',
-    'products': 'Products',
-    'pricing': 'Pricing',
-    'reviews': 'Reviews',
-    'media': 'Media Library',
-    'settings': 'Settings'
+  var titles = {
+    dashboard: 'Dashboard', orders: 'Orders', products: 'Products',
+    pricing: 'Pricing', reviews: 'Reviews', media: 'Media Library', settings: 'Settings'
   };
-  document.getElementById('pageTitle').textContent = pageTitles[page] || 'Dashboard';
+  document.getElementById('pageTitle').textContent = titles[page] || 'Dashboard';
 
-  // Load page-specific data
   loadPageData(page);
 }
 
 function loadPageData(page) {
   switch (page) {
-    case 'dashboard':
-      updateStats();
-      updateRecentReviews();
-      break;
-    case 'products':
-      updateProductsTable();
-      break;
-    case 'pricing':
-      updatePricingTable();
-      break;
-    case 'reviews':
-      updateReviewsTable();
-      break;
-    case 'media':
-      updateMediaGrid();
-      break;
-    case 'settings':
-      loadSettings();
-      break;
+    case 'dashboard': updateStats(); updateRecentOrders(); break;
+    case 'orders': updateOrdersTable(); break;
+    case 'products': updateProductsTable(); break;
+    case 'pricing': updatePricingTable(); break;
+    case 'reviews': updateReviewsTable(); break;
+    case 'media': updateMediaGrid(); break;
+    case 'settings': loadSettings(); break;
   }
 }
 
 // ============ Login / Logout ============
-function handleLogin(e) {
+async function handleLogin(e) {
   e.preventDefault();
-  const username = document.getElementById('username').value;
-  const password = document.getElementById('password').value;
-  const errorMessage = document.getElementById('loginError');
+  var email = document.getElementById('loginEmail').value;
+  var password = document.getElementById('loginPassword').value;
+  var errorMessage = document.getElementById('loginError');
 
-  if (AuthStore.login(username, password)) {
+  var result = await AuthStore.login(email, password);
+  if (result.error) {
+    errorMessage.textContent = result.error;
+    errorMessage.style.display = 'block';
+  } else {
     errorMessage.style.display = 'none';
     showDashboard();
-    // Check if default password needs changing
-    if (AuthStore.checkDefaultPassword()) {
-      // Could show a toast or banner here
-      console.log('Default password detected - please change it');
-    }
-  } else {
-    errorMessage.style.display = 'block';
+    toast('Welcome back!');
   }
 }
 
-function handleLogout() {
-  AuthStore.logout();
+async function handleLogout() {
+  await AuthStore.logout();
   showLoginPage();
 }
 
 // ============ Dashboard Stats ============
-function updateStats() {
-  const stats = Stats.get();
+async function updateStats() {
+  var stats = await Stats.get();
   document.getElementById('statProducts').textContent = stats.totalProducts;
+  document.getElementById('statOrders').textContent = stats.totalOrders;
+  document.getElementById('statRevenue').textContent = '\u20B9' + stats.totalRevenue.toLocaleString('en-IN');
   document.getElementById('statTotalReviews').textContent = stats.totalReviews;
-  document.getElementById('statApproved').textContent = stats.approvedReviews;
-  document.getElementById('statPending').textContent = stats.pendingReviews;
 }
 
-function updateRecentReviews() {
-  const reviews = ReviewStore.getAll();
-  const recent = reviews.slice(-5).reverse(); // Get last 5, most recent first
-  const tbody = document.getElementById('recentReviewsTable');
+// ============ Recent Orders (Dashboard) ============
+async function updateRecentOrders() {
+  var orders = await OrderStore.getAll();
+  var recent = orders.slice(0, 5);
+  var tbody = document.getElementById('recentOrdersTable');
 
   if (recent.length === 0) {
-    tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; color: var(--admin-text-muted);">No reviews yet</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:var(--admin-text-muted);">No orders yet</td></tr>';
     return;
   }
 
-  tbody.innerHTML = recent.map(review => `
-    <tr>
-      <td>${escapeHtml(review.name)}</td>
-      <td>${'★'.repeat(review.rating)}${'☆'.repeat(5 - review.rating)}</td>
-      <td>${escapeHtml(review.comment.substring(0, 50))}...</td>
-      <td><span class="badge badge--${review.approved ? 'approved' : 'pending'}">${review.approved ? 'Approved' : 'Pending'}</span></td>
-      <td>
-        ${!review.approved ? `<button class="btn btn--sm btn--success" onclick="approveReview('${review.id}')">Approve</button>` : ''}
-        <button class="btn btn--sm btn--danger" onclick="deleteReview('${review.id}')">Delete</button>
-      </td>
-    </tr>
-  `).join('');
+  tbody.innerHTML = recent.map(function(order) {
+    return '<tr>' +
+      '<td>#' + (order.order_number || order.id.slice(0, 8)) + '</td>' +
+      '<td>' + escapeHtml(order.customer_name) + '</td>' +
+      '<td>' + (order.items || []).length + ' item(s)</td>' +
+      '<td>\u20B9' + parseFloat(order.total).toLocaleString('en-IN') + '</td>' +
+      '<td><span class="badge badge--' + order.status + '">' + capitalize(order.status) + '</span></td>' +
+      '<td>' + formatDate(order.created_at) + '</td>' +
+    '</tr>';
+  }).join('');
+}
+
+// ============ Orders ============
+async function updateOrdersTable() {
+  showLoading('ordersTable');
+  var allOrders = await OrderStore.getAll();
+  var orders;
+
+  if (currentOrderFilter === 'all') {
+    orders = allOrders;
+  } else {
+    orders = allOrders.filter(function(o) { return o.status === currentOrderFilter; });
+  }
+
+  var tbody = document.getElementById('ordersTable');
+  if (orders.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;color:var(--admin-text-muted);">No orders found</td></tr>';
+    return;
+  }
+
+  tbody.innerHTML = orders.map(function(order) {
+    return '<tr>' +
+      '<td>#' + (order.order_number || order.id.slice(0, 8)) + '</td>' +
+      '<td>' + escapeHtml(order.customer_name) + '<br><small style="color:var(--admin-text-muted)">' + escapeHtml(order.customer_phone) + '</small></td>' +
+      '<td>' + (order.items || []).map(function(i) { return escapeHtml(i.name || i.weight || '') + ' x' + (i.qty || 1); }).join(', ') + '</td>' +
+      '<td>\u20B9' + parseFloat(order.total).toLocaleString('en-IN') + '</td>' +
+      '<td><span class="badge badge--' + order.status + '">' + capitalize(order.status) + '</span></td>' +
+      '<td>' + formatDate(order.created_at) + '</td>' +
+      '<td><button class="btn btn--sm btn--secondary" onclick="viewOrder(\'' + order.id + '\')">View</button></td>' +
+    '</tr>';
+  }).join('');
+}
+
+async function viewOrder(id) {
+  var order = await OrderStore.getById(id);
+  if (!order) { toast('Order not found', 'error'); return; }
+
+  var body = document.getElementById('orderModalBody');
+  var address = order.address || {};
+  var items = order.items || [];
+
+  body.innerHTML =
+    '<div style="display:grid;gap:20px;">' +
+      '<div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">' +
+        '<div><label style="font-size:0.8rem;color:var(--admin-text-muted);">Order Number</label><p style="font-size:1.1rem;font-weight:600;">#' + (order.order_number || order.id.slice(0, 8)) + '</p></div>' +
+        '<div><label style="font-size:0.8rem;color:var(--admin-text-muted);">Date</label><p>' + formatDate(order.created_at) + '</p></div>' +
+        '<div><label style="font-size:0.8rem;color:var(--admin-text-muted);">Customer</label><p>' + escapeHtml(order.customer_name) + '</p></div>' +
+        '<div><label style="font-size:0.8rem;color:var(--admin-text-muted);">Phone</label><p>' + escapeHtml(order.customer_phone) + '</p></div>' +
+        '<div><label style="font-size:0.8rem;color:var(--admin-text-muted);">Payment</label><p>' + capitalize(order.payment_method || 'cod') + '</p></div>' +
+        '<div><label style="font-size:0.8rem;color:var(--admin-text-muted);">Total</label><p style="font-size:1.1rem;font-weight:600;color:var(--admin-gold);">\u20B9' + parseFloat(order.total).toLocaleString('en-IN') + '</p></div>' +
+      '</div>' +
+      (address.line1 ? '<div><label style="font-size:0.8rem;color:var(--admin-text-muted);">Delivery Address</label><p>' + escapeHtml(address.line1) + (address.line2 ? ', ' + escapeHtml(address.line2) : '') + '</p><p>' + escapeHtml(address.city || '') + ' ' + escapeHtml(address.state || '') + ' - ' + escapeHtml(address.pincode || '') + '</p></div>' : '') +
+      '<div><label style="font-size:0.8rem;color:var(--admin-text-muted);">Items</label>' +
+        '<table class="data-table" style="margin-top:8px;"><thead><tr><th>Product</th><th>Qty</th><th>Price</th></tr></thead><tbody>' +
+        items.map(function(i) { return '<tr><td>' + escapeHtml(i.name || i.weight || 'Item') + '</td><td>' + (i.qty || 1) + '</td><td>\u20B9' + parseFloat(i.price || 0).toLocaleString('en-IN') + '</td></tr>'; }).join('') +
+        '</tbody></table></div>' +
+      '<div><label style="font-size:0.8rem;color:var(--admin-text-muted);">Update Status</label>' +
+        '<select id="orderStatusSelect" style="width:100%;padding:12px 16px;background:var(--admin-bg-card);border:1px solid var(--admin-border);border-radius:8px;color:var(--admin-text);font-size:0.95rem;margin-top:8px;">' +
+        ['pending', 'confirmed', 'shipped', 'delivered', 'cancelled'].map(function(s) {
+          return '<option value="' + s + '"' + (order.status === s ? ' selected' : '') + '>' + capitalize(s) + '</option>';
+        }).join('') +
+        '</select></div>' +
+    '</div>';
+
+  var footer = document.getElementById('orderModalFooter');
+  footer.innerHTML =
+    '<button class="btn btn--secondary" onclick="closeModal(\'orderModal\')">Close</button>' +
+    '<button class="btn btn--primary" onclick="updateOrderStatus(\'' + order.id + '\')">Update Status</button>';
+
+  document.getElementById('orderModal').classList.add('active');
+}
+
+async function updateOrderStatus(id) {
+  var status = document.getElementById('orderStatusSelect').value;
+  var result = await OrderStore.updateStatus(id, status);
+  if (result) {
+    toast('Order updated to ' + capitalize(status));
+    closeModal('orderModal');
+    updateOrdersTable();
+    updateRecentOrders();
+    updateStats();
+  } else {
+    toast('Failed to update order', 'error');
+  }
 }
 
 // ============ Products ============
-function updateProductsTable() {
-  const products = ProductStore.getAll();
-  const tbody = document.getElementById('productsTable');
+async function updateProductsTable() {
+  showLoading('productsTable');
+  var products = await ProductStore.getAll();
+  var tbody = document.getElementById('productsTable');
 
   if (products.length === 0) {
-    tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; color: var(--admin-text-muted);">No products yet</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;color:var(--admin-text-muted);">No products yet</td></tr>';
     return;
   }
 
-  tbody.innerHTML = products.map(product => `
-    <tr>
-      <td>${escapeHtml(product.name)} ${product.popular ? '<span class="badge badge--approved">Most Popular</span>' : ''}</td>
-      <td>${escapeHtml(product.weight || product.size || 'N/A')}</td>
-      <td>₹${product.price}</td>
-      <td>${product.popular ? 'Yes' : 'No'}</td>
-      <td>
-        <button class="btn btn--sm btn--secondary" onclick="editProduct('${product.id}')">Edit</button>
-        <button class="btn btn--sm btn--danger" onclick="deleteProduct('${product.id}')">Delete</button>
-      </td>
-    </tr>
-  `).join('');
+  tbody.innerHTML = products.map(function(product) {
+    return '<tr>' +
+      '<td>' + escapeHtml(product.name) + (product.popular ? ' <span class="badge badge--approved">Most Popular</span>' : '') + '</td>' +
+      '<td>' + escapeHtml(product.weight) + '</td>' +
+      '<td>\u20B9' + parseFloat(product.price).toLocaleString('en-IN') + '</td>' +
+      '<td>' + (product.popular ? 'Yes' : 'No') + '</td>' +
+      '<td>' +
+        '<button class="btn btn--sm btn--secondary" onclick="editProduct(\'' + product.id + '\')">Edit</button>' +
+        '<button class="btn btn--sm btn--danger" onclick="deleteProduct(\'' + product.id + '\')">Delete</button>' +
+      '</td>' +
+    '</tr>';
+  }).join('');
 }
 
-function openProductModal(product = null) {
-  const modal = document.getElementById('productModal');
-  const title = document.getElementById('productModalTitle');
+function openProductModal(product) {
+  var modal = document.getElementById('productModal');
+  var title = document.getElementById('productModalTitle');
 
   if (product) {
     title.textContent = 'Edit Product';
     document.getElementById('productId').value = product.id;
     document.getElementById('productName').value = product.name || '';
-    document.getElementById('productWeight').value = product.weight || product.size || '';
+    document.getElementById('productWeight').value = product.weight || '';
     document.getElementById('productPrice').value = product.price || '';
     document.getElementById('productDesc').value = product.description || '';
     document.getElementById('productImage').value = product.image || '';
@@ -282,9 +325,9 @@ function openProductModal(product = null) {
   modal.classList.add('active');
 }
 
-function handleSaveProduct() {
-  const id = document.getElementById('productId').value;
-  const productData = {
+async function handleSaveProduct() {
+  var id = document.getElementById('productId').value;
+  var productData = {
     name: document.getElementById('productName').value,
     weight: document.getElementById('productWeight').value,
     price: parseFloat(document.getElementById('productPrice').value) || 0,
@@ -294,69 +337,78 @@ function handleSaveProduct() {
     popular: document.getElementById('productPopular').checked
   };
 
+  var result;
   if (id) {
-    ProductStore.update(id, productData);
+    result = await ProductStore.update(id, productData);
   } else {
-    ProductStore.add(productData);
+    result = await ProductStore.add(productData);
   }
 
-  closeModal('productModal');
-  updateProductsTable();
-  updateStats();
-}
-
-function editProduct(id) {
-  const product = ProductStore.getById(id);
-  if (product) {
-    openProductModal(product);
-  }
-}
-
-function deleteProduct(id) {
-  if (confirm('Are you sure you want to delete this product?')) {
-    ProductStore.delete(id);
+  if (result) {
+    toast(id ? 'Product updated' : 'Product added');
+    closeModal('productModal');
     updateProductsTable();
     updateStats();
+  } else {
+    toast('Failed to save product', 'error');
+  }
+}
+
+async function editProduct(id) {
+  var product = await ProductStore.getById(id);
+  if (product) openProductModal(product);
+}
+
+async function deleteProduct(id) {
+  if (!confirm('Are you sure you want to delete this product?')) return;
+  var success = await ProductStore.delete(id);
+  if (success) {
+    toast('Product deleted');
+    updateProductsTable();
+    updateStats();
+  } else {
+    toast('Failed to delete product', 'error');
   }
 }
 
 // ============ Pricing ============
-function updatePricingTable() {
-  const pricing = PricingStore.getAll();
-  const tbody = document.getElementById('pricingTable');
+async function updatePricingTable() {
+  showLoading('pricingTable');
+  var pricing = await PricingStore.getAll();
+  var tbody = document.getElementById('pricingTable');
 
   if (pricing.length === 0) {
-    tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; color: var(--admin-text-muted);">No pricing tiers yet</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;color:var(--admin-text-muted);">No pricing tiers yet</td></tr>';
     return;
   }
 
-  tbody.innerHTML = pricing.map(tier => `
-    <tr>
-      <td>${escapeHtml(tier.size)}</td>
-      <td>₹${tier.price}</td>
-      <td>₹${tier.deliveryCharge || 0}</td>
-      <td>${tier.codExtra ? '₹' + (tier.codAmount || 60) : 'No'}</td>
-      <td>
-        <button class="btn btn--sm btn--secondary" onclick="editPricing('${tier.id}')">Edit</button>
-        <button class="btn btn--sm btn--danger" onclick="deletePricing('${tier.id}')">Delete</button>
-      </td>
-    </tr>
-  `).join('');
+  tbody.innerHTML = pricing.map(function(tier) {
+    return '<tr>' +
+      '<td>' + escapeHtml(tier.size) + '</td>' +
+      '<td>\u20B9' + parseFloat(tier.price).toLocaleString('en-IN') + '</td>' +
+      '<td>\u20B9' + parseFloat(tier.delivery_charge || 0).toLocaleString('en-IN') + '</td>' +
+      '<td>' + (tier.cod_extra ? '\u20B9' + (tier.cod_amount || 60) : 'No') + '</td>' +
+      '<td>' +
+        '<button class="btn btn--sm btn--secondary" onclick="editPricing(\'' + tier.id + '\')">Edit</button>' +
+        '<button class="btn btn--sm btn--danger" onclick="deletePricing(\'' + tier.id + '\')">Delete</button>' +
+      '</td>' +
+    '</tr>';
+  }).join('');
 }
 
-function openPricingModal(tier = null) {
-  const modal = document.getElementById('pricingModal');
-  const title = document.getElementById('pricingModalTitle');
+function openPricingModal(tier) {
+  var modal = document.getElementById('pricingModal');
+  var title = document.getElementById('pricingModalTitle');
 
   if (tier) {
     title.textContent = 'Edit Pricing Tier';
     document.getElementById('pricingId').value = tier.id;
     document.getElementById('packSize').value = tier.size || '';
     document.getElementById('packPrice').value = tier.price || '';
-    document.getElementById('deliveryCharge').value = tier.deliveryCharge || 0;
-    document.getElementById('codExtra').checked = tier.codExtra || false;
-    document.getElementById('codAmount').value = tier.codAmount || 60;
-    document.getElementById('codAmountGroup').style.display = tier.codExtra ? 'block' : 'none';
+    document.getElementById('deliveryCharge').value = tier.delivery_charge || 0;
+    document.getElementById('codExtra').checked = tier.cod_extra || false;
+    document.getElementById('codAmount').value = tier.cod_amount || 60;
+    document.getElementById('codAmountGroup').style.display = tier.cod_extra ? 'block' : 'none';
   } else {
     title.textContent = 'Add Pricing Tier';
     document.getElementById('pricingForm').reset();
@@ -367,179 +419,184 @@ function openPricingModal(tier = null) {
   modal.classList.add('active');
 }
 
-function handleSavePricing() {
-  const id = document.getElementById('pricingId').value;
-  const pricingData = {
+async function handleSavePricing() {
+  var id = document.getElementById('pricingId').value;
+  var pricingData = {
     size: document.getElementById('packSize').value,
     price: parseFloat(document.getElementById('packPrice').value) || 0,
-    deliveryCharge: parseFloat(document.getElementById('deliveryCharge').value) || 0,
-    codExtra: document.getElementById('codExtra').checked,
-    codAmount: parseFloat(document.getElementById('codAmount').value) || 0
+    delivery_charge: parseFloat(document.getElementById('deliveryCharge').value) || 0,
+    cod_extra: document.getElementById('codExtra').checked,
+    cod_amount: parseFloat(document.getElementById('codAmount').value) || 0
   };
 
+  var result;
   if (id) {
-    PricingStore.update(id, pricingData);
+    result = await PricingStore.update(id, pricingData);
   } else {
-    PricingStore.add(pricingData);
+    result = await PricingStore.add(pricingData);
   }
 
-  closeModal('pricingModal');
-  updatePricingTable();
-}
-
-function editPricing(id) {
-  const tier = PricingStore.getAll().find(p => p.id === id);
-  if (tier) {
-    openPricingModal(tier);
-  }
-}
-
-function deletePricing(id) {
-  if (confirm('Are you sure you want to delete this pricing tier?')) {
-    PricingStore.delete(id);
+  if (result) {
+    toast(id ? 'Pricing updated' : 'Pricing added');
+    closeModal('pricingModal');
     updatePricingTable();
+  } else {
+    toast('Failed to save pricing', 'error');
+  }
+}
+
+async function editPricing(id) {
+  var pricing = await PricingStore.getAll();
+  var tier = pricing.find(function(p) { return p.id === id; });
+  if (tier) openPricingModal(tier);
+}
+
+async function deletePricing(id) {
+  if (!confirm('Are you sure you want to delete this pricing tier?')) return;
+  var success = await PricingStore.delete(id);
+  if (success) {
+    toast('Pricing tier deleted');
+    updatePricingTable();
+  } else {
+    toast('Failed to delete pricing', 'error');
   }
 }
 
 // ============ Reviews ============
-function updateReviewsTable() {
-  const allReviews = ReviewStore.getAll();
-  let reviews;
+async function updateReviewsTable() {
+  showLoading('reviewsTable');
+  var reviews;
 
   switch (currentReviewFilter) {
-    case 'approved':
-      reviews = ReviewStore.getApproved();
-      break;
-    case 'pending':
-      reviews = ReviewStore.getPending();
-      break;
-    default:
-      reviews = allReviews;
+    case 'approved': reviews = await ReviewStore.getApproved(); break;
+    case 'pending': reviews = await ReviewStore.getPending(); break;
+    default: reviews = await ReviewStore.getAll();
   }
 
-  const tbody = document.getElementById('reviewsTable');
+  var tbody = document.getElementById('reviewsTable');
   if (reviews.length === 0) {
-    tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; color: var(--admin-text-muted);">No reviews found</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:var(--admin-text-muted);">No reviews found</td></tr>';
     return;
   }
 
-  tbody.innerHTML = reviews.map(review => `
-    <tr>
-      <td>${escapeHtml(review.name)}</td>
-      <td>${'★'.repeat(review.rating)}${'☆'.repeat(5 - review.rating)}</td>
-      <td>${escapeHtml(review.comment.substring(0, 100))}...</td>
-      <td>${formatDate(review.date)}</td>
-      <td><span class="badge badge--${review.approved ? 'approved' : 'pending'}">${review.approved ? 'Approved' : 'Pending'}</span></td>
-      <td>
-        ${!review.approved ? `<button class="btn btn--sm btn--success" onclick="approveReview('${review.id}')">Approve</button>` : ''}
-        <button class="btn btn--sm btn--danger" onclick="deleteReview('${review.id}')">Delete</button>
-      </td>
-    </tr>
-  `).join('');
+  tbody.innerHTML = reviews.map(function(review) {
+    return '<tr>' +
+      '<td>' + escapeHtml(review.name) + '</td>' +
+      '<td>' + '\u2605'.repeat(review.rating) + '\u2606'.repeat(5 - review.rating) + '</td>' +
+      '<td>' + escapeHtml(review.comment.substring(0, 100)) + (review.comment.length > 100 ? '...' : '') + '</td>' +
+      '<td>' + formatDate(review.date || review.created_at) + '</td>' +
+      '<td><span class="badge badge--' + (review.approved ? 'approved' : 'pending') + '">' + (review.approved ? 'Approved' : 'Pending') + '</span></td>' +
+      '<td>' +
+        (!review.approved ? '<button class="btn btn--sm btn--success" onclick="approveReview(\'' + review.id + '\')">Approve</button>' : '') +
+        '<button class="btn btn--sm btn--danger" onclick="deleteReview(\'' + review.id + '\')">Delete</button>' +
+      '</td>' +
+    '</tr>';
+  }).join('');
 }
 
-function approveReview(id) {
-  ReviewStore.approve(id);
-  updateReviewsTable();
-  updateRecentReviews();
-  updateStats();
-}
-
-function deleteReview(id) {
-  if (confirm('Are you sure you want to delete this review?')) {
-    ReviewStore.delete(id);
+async function approveReview(id) {
+  var result = await ReviewStore.approve(id);
+  if (result) {
+    toast('Review approved');
     updateReviewsTable();
-    updateRecentReviews();
     updateStats();
+  } else {
+    toast('Failed to approve review', 'error');
+  }
+}
+
+async function deleteReview(id) {
+  if (!confirm('Are you sure you want to delete this review?')) return;
+  var success = await ReviewStore.delete(id);
+  if (success) {
+    toast('Review deleted');
+    updateReviewsTable();
+    updateStats();
+  } else {
+    toast('Failed to delete review', 'error');
   }
 }
 
 // ============ Media ============
 function setupDropZone() {
-  const dropZone = document.getElementById('dropZone');
-  const fileInput = document.getElementById('fileInput');
-
+  var dropZone = document.getElementById('dropZone');
+  var fileInput = document.getElementById('fileInput');
   if (!dropZone || !fileInput) return;
 
-  dropZone.addEventListener('click', () => fileInput.click());
-  dropZone.addEventListener('dragover', (e) => {
+  dropZone.addEventListener('click', function() { fileInput.click(); });
+  dropZone.addEventListener('dragover', function(e) {
     e.preventDefault();
     dropZone.style.borderColor = 'var(--admin-gold)';
   });
-  dropZone.addEventListener('dragleave', () => {
+  dropZone.addEventListener('dragleave', function() {
     dropZone.style.borderColor = 'var(--admin-border)';
   });
-  dropZone.addEventListener('drop', (e) => {
+  dropZone.addEventListener('drop', function(e) {
     e.preventDefault();
     dropZone.style.borderColor = 'var(--admin-border)';
     handleFiles(e.dataTransfer.files);
   });
-  fileInput.addEventListener('change', (e) => {
-    handleFiles(e.target.files);
-  });
+  fileInput.addEventListener('change', function(e) { handleFiles(e.target.files); });
 }
 
-function handleFiles(files) {
-  Array.from(files).forEach(file => {
-    // Check file type
-    const allowedTypes = ['image/jpeg', 'image/png', 'image/webp', 'video/mp4', 'video/quicktime'];
-    if (!allowedTypes.includes(file.type)) {
-      alert('Invalid file type. Please upload JPG, PNG, WebP, MP4, or MOV files.');
-      return;
+async function handleFiles(files) {
+  for (var i = 0; i < files.length; i++) {
+    var file = files[i];
+    var allowedTypes = ['image/jpeg', 'image/png', 'image/webp', 'video/mp4', 'video/quicktime'];
+    if (allowedTypes.indexOf(file.type) === -1) {
+      toast('Invalid file type. Upload JPG, PNG, WebP, MP4, or MOV.', 'error');
+      continue;
     }
-
-    // Check file size (50MB limit)
     if (file.size > 50 * 1024 * 1024) {
-      alert('File too large. Maximum size is 50MB.');
-      return;
+      toast('File too large. Max 50MB.', 'error');
+      continue;
     }
 
-    // Convert to base64 and store
-    fileToBase64(file).then(base64 => {
-      MediaStore.add({
-        name: file.name,
-        type: file.type,
-        size: file.size,
-        data: base64
-      });
-      updateMediaGrid();
+    var base64 = await fileToBase64(file);
+    await MediaStore.add({
+      name: file.name,
+      type: file.type,
+      size: file.size,
+      url: base64
     });
-  });
+  }
+  toast('Media uploaded');
+  updateMediaGrid();
 }
 
-function updateMediaGrid() {
-  const media = MediaStore.getAll();
-  const grid = document.getElementById('mediaGrid');
+async function updateMediaGrid() {
+  var media = await MediaStore.getAll();
+  var grid = document.getElementById('mediaGrid');
 
   if (media.length === 0) {
-    grid.innerHTML = '<p style="grid-column: 1/-1; text-align: center; color: var(--admin-text-muted);">No media uploaded yet</p>';
+    grid.innerHTML = '<p style="grid-column:1/-1;text-align:center;color:var(--admin-text-muted);">No media uploaded yet</p>';
     return;
   }
 
-  grid.innerHTML = media.map(item => {
-    const isImage = item.type.startsWith('image/');
-    return `
-      <div style="background: var(--admin-bg-card); border: 1px solid var(--admin-border); border-radius: 8px; overflow: hidden;">
-        ${isImage ? `<img src="${item.data}" style="width: 100%; height: 160px; object-fit: cover;">` : `<div style="width: 100%; height: 160px; display: flex; align-items: center; justify-content: center; font-size: 48px;">🎬</div>`}
-        <div style="padding: 12px;">
-          <p style="font-size: 0.875rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${escapeHtml(item.name)}</p>
-          <button class="btn btn--sm btn--danger" style="margin-top: 8px; width: 100%;" onclick="deleteMedia('${item.id}')">Delete</button>
-        </div>
-      </div>
-    `;
+  grid.innerHTML = media.map(function(item) {
+    var isImage = item.type && item.type.startsWith('image/');
+    return '<div style="background:var(--admin-bg-card);border:1px solid var(--admin-border);border-radius:8px;overflow:hidden;">' +
+      (isImage ? '<img src="' + item.url + '" style="width:100%;height:160px;object-fit:cover;">' : '<div style="width:100%;height:160px;display:flex;align-items:center;justify-content:center;font-size:48px;">\uD83C\uDFAC</div>') +
+      '<div style="padding:12px;">' +
+        '<p style="font-size:0.875rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">' + escapeHtml(item.name) + '</p>' +
+        '<button class="btn btn--sm btn--danger" style="margin-top:8px;width:100%;" onclick="deleteMedia(\'' + item.id + '\')">Delete</button>' +
+      '</div>' +
+    '</div>';
   }).join('');
 }
 
-function deleteMedia(id) {
-  if (confirm('Are you sure you want to delete this media?')) {
-    MediaStore.delete(id);
+async function deleteMedia(id) {
+  if (!confirm('Delete this media?')) return;
+  var success = await MediaStore.delete(id);
+  if (success) {
+    toast('Media deleted');
     updateMediaGrid();
   }
 }
 
 // ============ Settings ============
-function loadSettings() {
-  const settings = SettingsStore.getAll();
+async function loadSettings() {
+  var settings = await SettingsStore.getAll();
   document.getElementById('siteName').value = settings.siteName || '';
   document.getElementById('tagline').value = settings.tagline || '';
   document.getElementById('phone').value = settings.phone || '';
@@ -549,9 +606,9 @@ function loadSettings() {
   document.getElementById('aboutUs').value = settings.aboutUs || '';
 }
 
-function handleSaveSettings(e) {
+async function handleSaveSettings(e) {
   e.preventDefault();
-  const settingsData = {
+  var settingsData = {
     siteName: document.getElementById('siteName').value,
     tagline: document.getElementById('tagline').value,
     phone: document.getElementById('phone').value,
@@ -561,16 +618,24 @@ function handleSaveSettings(e) {
     aboutUs: document.getElementById('aboutUs').value
   };
 
-  SettingsStore.update(settingsData);
-  alert('Settings saved successfully!');
+  var result = await SettingsStore.update(settingsData);
+  if (result) {
+    toast('Settings saved');
+  } else {
+    toast('Failed to save settings', 'error');
+  }
 }
 
-// ============ Modal Utilities ============
+// ============ Utilities ============
 function closeModal(modalId) {
   document.getElementById(modalId).classList.remove('active');
 }
 
-// ============ Export for global access ============
+function capitalize(str) {
+  return str ? str.charAt(0).toUpperCase() + str.slice(1) : '';
+}
+
+// ============ Global Exports ============
 window.navigateTo = navigateTo;
 window.openProductModal = openProductModal;
 window.editProduct = editProduct;
@@ -582,3 +647,5 @@ window.approveReview = approveReview;
 window.deleteReview = deleteReview;
 window.deleteMedia = deleteMedia;
 window.closeModal = closeModal;
+window.viewOrder = viewOrder;
+window.updateOrderStatus = updateOrderStatus;

@@ -19,16 +19,16 @@
       <p>Sign in to manage your store</p>
       <form id="loginForm" class="login-form">
         <div class="form-group">
-          <label for="username">Username</label>
-          <input type="text" id="username" name="username" required autocomplete="username">
+          <label for="loginEmail">Email</label>
+          <input type="email" id="loginEmail" name="email" required autocomplete="email">
         </div>
         <div class="form-group">
-          <label for="password">Password</label>
-          <input type="password" id="password" name="password" required autocomplete="current-password">
+          <label for="loginPassword">Password</label>
+          <input type="password" id="loginPassword" name="password" required autocomplete="current-password">
         </div>
         <button type="submit">Sign In</button>
       </form>
-      <div id="loginError" class="error-message">Invalid username or password</div>
+      <div id="loginError" class="error-message">Invalid email or password</div>
     </div>
   </div>
 
@@ -52,6 +52,10 @@
         <a href="#" class="sidebar__nav-item" data-page="products">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg>
           Products
+        </a>
+        <a href="#" class="sidebar__nav-item" data-page="orders">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="1"/><path d="M9 14l2 2 4-4"/></svg>
+          Orders
         </a>
         <a href="#" class="sidebar__nav-item" data-page="pricing">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
@@ -95,38 +99,70 @@
         <div class="stats-grid">
           <div class="stat-card">
             <div class="stat-card__icon stat-card__icon--gold">📦</div>
-            <div class="stat-card__value" id="statProducts">5</div>
+            <div class="stat-card__value" id="statProducts">-</div>
             <div class="stat-card__label">Total Products</div>
           </div>
           <div class="stat-card">
-            <div class="stat-card__icon stat-card__icon--blue">⭐</div>
-            <div class="stat-card__value" id="statTotalReviews">3</div>
+            <div class="stat-card__icon stat-card__icon--green">🛒</div>
+            <div class="stat-card__value" id="statOrders">-</div>
+            <div class="stat-card__label">Total Orders</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-card__icon stat-card__icon--blue">💰</div>
+            <div class="stat-card__value" id="statRevenue">-</div>
+            <div class="stat-card__label">Revenue</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-card__icon stat-card__icon--orange">⭐</div>
+            <div class="stat-card__value" id="statTotalReviews">-</div>
             <div class="stat-card__label">Total Reviews</div>
-          </div>
-          <div class="stat-card">
-            <div class="stat-card__icon stat-card__icon--green">✅</div>
-            <div class="stat-card__value" id="statApproved">2</div>
-            <div class="stat-card__label">Approved Reviews</div>
-          </div>
-          <div class="stat-card">
-            <div class="stat-card__icon stat-card__icon--orange">⏳</div>
-            <div class="stat-card__value" id="statPending">1</div>
-            <div class="stat-card__label">Pending Reviews</div>
           </div>
         </div>
 
-        <h3 style="margin-bottom: 16px; font-size: 1.2rem;">Recent Reviews</h3>
+        <h3 style="margin-bottom: 16px; font-size: 1.2rem;">Recent Orders</h3>
         <table class="data-table">
           <thead>
             <tr>
+              <th>Order #</th>
               <th>Customer</th>
-              <th>Rating</th>
-              <th>Comment</th>
+              <th>Items</th>
+              <th>Total</th>
               <th>Status</th>
+              <th>Date</th>
+            </tr>
+          </thead>
+          <tbody id="recentOrdersTable">
+            <!-- Populated by JS -->
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Orders Page -->
+      <div id="page--orders" class="content-section">
+        <div class="section-header">
+          <h2>Orders</h2>
+        </div>
+        <div class="tabs">
+          <button class="tab active" data-order-filter="all">All</button>
+          <button class="tab" data-order-filter="pending">Pending</button>
+          <button class="tab" data-order-filter="confirmed">Confirmed</button>
+          <button class="tab" data-order-filter="shipped">Shipped</button>
+          <button class="tab" data-order-filter="delivered">Delivered</button>
+          <button class="tab" data-order-filter="cancelled">Cancelled</button>
+        </div>
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Order #</th>
+              <th>Customer</th>
+              <th>Items</th>
+              <th>Total</th>
+              <th>Status</th>
+              <th>Date</th>
               <th>Actions</th>
             </tr>
           </thead>
-          <tbody id="recentReviewsTable">
+          <tbody id="ordersTable">
             <!-- Populated by JS -->
           </tbody>
         </table>
@@ -352,8 +388,24 @@
     </div>
   </div>
 
-  <script src="js/data.js"></script>
+  <!-- Order Detail Modal -->
+  <div id="orderModal" class="modal-overlay">
+    <div class="modal" style="max-width: 640px;">
+      <div class="modal__header">
+        <h3>Order Details</h3>
+        <button class="modal__close" onclick="closeModal('orderModal')">&times;</button>
+      </div>
+      <div class="modal__body" id="orderModalBody"></div>
+      <div class="modal__footer" id="orderModalFooter"></div>
+    </div>
+  </div>
+
+  <!-- Toast Container -->
+  <div id="toastContainer" class="toast-container"></div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
   <script src="js/utils.js"></script>
+  <script src="js/supabase-client.js"></script>
   <script src="js/admin.js"></script>
 
 </body>
