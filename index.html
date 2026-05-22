@@ -69,76 +69,137 @@
        ============================================ -->
   <section class="hero" id="home" aria-label="Hero section">
     <div class="hero__bg" aria-hidden="true">
+      <div class="hero__aura" id="heroAura"></div>
       <canvas id="heroCanvas" class="hero__canvas"></canvas>
     </div>
 
-    <div class="hero__content">
-      <!-- Trust Badge -->
-      <div class="hero__trust-badge">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true">
-          <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" stroke-linecap="round" stroke-linejoin="round"/>
-        </svg>
-        <span>FSSAI Certified &middot; 100% Pure</span>
-      </div>
+    <div class="hero__container container">
+      <!-- Left Column: Copy & Actions -->
+      <div class="hero__left">
+        <!-- Trust Badge -->
+        <div class="hero__trust-badge">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true">
+            <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+          <span>FSSAI Certified &middot; 100% Pure</span>
+        </div>
 
-      <!-- Interactive Ghee Jar -->
-      <div class="hero__visual" id="heroVisual">
-        <div class="hero__jar-scene" id="jarScene">
-          <div class="hero__jar-container" id="jarContainer">
-            <div class="hero__jar">
-              <div class="hero__jar-glow"></div>
-              <div class="hero__jar-body">
-                <div class="hero__jar-ghee">
-                  <div class="hero__jar-ghee-surface"></div>
-                  <div class="hero__jar-ghee-shimmer"></div>
-                </div>
-                <div class="hero__jar-label">
-                  <span class="hero__jar-label-brand">Pobitra</span>
-                  <span class="hero__jar-label-type">Pure Ghee</span>
-                </div>
-              </div>
-              <div class="hero__jar-lid">
-                <div class="hero__jar-lid-highlight"></div>
-              </div>
-              <div class="hero__jar-reflection"></div>
-              <div class="hero__jar-light" id="jarLight"></div>
-            </div>
-            <div class="hero__jar-shadow" id="jarShadow"></div>
+        <!-- Headline -->
+        <h1 class="hero__tagline">
+          <span class="reveal-wrapper">
+            <span class="reveal-inner">Not Just Ghee.</span>
+          </span>
+          <span class="reveal-wrapper">
+            <span class="reveal-inner hero__tagline-accent">Your Childhood Memories.</span>
+          </span>
+        </h1>
+
+        <p class="hero__subtext">
+          Made the way your grandmother made it — slow-churned by hand using the bilona method. 
+          Pure. Golden. Unforgettable.
+        </p>
+
+        <!-- CTA Group -->
+        <div class="hero__cta-group">
+          <a href="#order" class="btn btn--primary btn--lg hero__cta">
+            Order Now — Free Delivery
+          </a>
+          <a href="#story" class="btn btn--secondary btn--lg hero__cta-secondary">
+            Our Story
+          </a>
+        </div>
+
+        <!-- Social Proof -->
+        <div class="hero__social-proof">
+          <div class="hero__avatars">
+            <span class="hero__avatar">👩</span>
+            <span class="hero__avatar">👨</span>
+            <span class="hero__avatar">👩‍🦱</span>
+            <span class="hero__avatar">🧑</span>
+            <span class="hero__avatar-more">+26</span>
+          </div>
+          <div class="hero__social-text">
+            <span class="hero__social-count" data-target="30">0</span>+ families trust us
+          </div>
+          <div class="hero__social-rating">
+            <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+            <span>4.9</span>
           </div>
         </div>
       </div>
 
-      <!-- Headline -->
-      <h1 class="hero__tagline">
-        Not Just Ghee.<br>
-        <span class="hero__tagline-accent">Your Childhood Memories.</span>
-      </h1>
+      <!-- Right Column: Visual Scene -->
+      <div class="hero__right">
+        <div class="hero__visual" id="heroVisual">
+          <div class="hero__jar-scene" id="jarScene">
+            <!-- Floating Parallax Badges -->
+            <div class="hero__floating-badge float-badge--1" data-depth="0.12">
+              <span class="hero__floating-badge-icon">🌿</span>
+              <span class="hero__floating-badge-text">100% Organic A2</span>
+            </div>
+            <div class="hero__floating-badge float-badge--2" data-depth="0.25">
+              <span class="hero__floating-badge-icon">🪵</span>
+              <span class="hero__floating-badge-text">Bilona Churned</span>
+            </div>
+            <div class="hero__floating-badge float-badge--3" data-depth="0.18">
+              <span class="hero__floating-badge-icon">🛡️</span>
+              <span class="hero__floating-badge-text">No Preservatives</span>
+            </div>
 
-      <p class="hero__subtext">
-        Made the way your grandmother made it — slow-churned by hand using the bilona method. 
-        Pure. Golden. Unforgettable.
-      </p>
+            <div class="hero__jar-container" id="jarContainer">
+              <div class="hero__jar">
+                <div class="hero__jar-glow"></div>
+                <div class="hero__jar-body">
+                  <div class="hero__jar-ghee">
+                    <div class="hero__jar-ghee-surface"></div>
+                    <div class="hero__jar-ghee-shimmer"></div>
+                    <div class="hero__jar-churning" id="jarChurning"></div>
+                  </div>
+                  <div class="hero__jar-label">
+                    <span class="hero__jar-label-brand">Pobitra</span>
+                    <span class="hero__jar-label-type">Pure Ghee</span>
+                  </div>
+                </div>
+                <div class="hero__jar-lid">
+                  <div class="hero__jar-lid-highlight"></div>
+                  <div class="hero__jar-lid-ridges"></div>
+                </div>
+                <div class="hero__jar-neck-rope"></div>
+                <div class="hero__jar-tag" id="heroJarTag">
+                  <span class="hero__jar-tag-string"></span>
+                  <span class="hero__jar-tag-card">Pure A2</span>
+                </div>
+                <div class="hero__jar-reflection"></div>
+                <div class="hero__jar-light" id="jarLight"></div>
 
-      <!-- CTA -->
-      <a href="#order" class="btn btn--primary btn--lg hero__cta">
-        Order Now — Free Delivery
-      </a>
+                <!-- Hotspots -->
+                <div class="hero__hotspot hotspot--lid" id="hotspotLid">
+                  <span class="hero__hotspot-dot"></span>
+                  <div class="hero__hotspot-tooltip" role="tooltip">
+                    <h5>Brass Lid Seal</h5>
+                    <p>Airtight brass lid preserves the rich, traditional aroma and protects freshness.</p>
+                  </div>
+                </div>
+                
+                <div class="hero__hotspot hotspot--label" id="hotspotLabel">
+                  <span class="hero__hotspot-dot"></span>
+                  <div class="hero__hotspot-tooltip" role="tooltip">
+                    <h5>Traditional Heritage</h5>
+                    <p>Churned slowly by hand in earthen pots using grass-fed A2 cow milk.</p>
+                  </div>
+                </div>
 
-      <!-- Social Proof -->
-      <div class="hero__social-proof">
-        <div class="hero__avatars">
-          <span class="hero__avatar">👩</span>
-          <span class="hero__avatar">👨</span>
-          <span class="hero__avatar">👩‍🦱</span>
-          <span class="hero__avatar">🧑</span>
-          <span class="hero__avatar-more">+26</span>
-        </div>
-        <div class="hero__social-text">
-          <span class="hero__social-count" data-target="30">0</span>+ families trust us
-        </div>
-        <div class="hero__social-rating">
-          <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
-          <span>4.9</span>
+                <div class="hero__hotspot hotspot--ghee" id="hotspotGhee">
+                  <span class="hero__hotspot-dot"></span>
+                  <div class="hero__hotspot-tooltip" role="tooltip">
+                    <h5>Granular Ghee</h5>
+                    <p>Granular ("Danedaar") golden texture, the mark of true slow-cooked purity.</p>
+                  </div>
+                </div>
+              </div>
+              <div class="hero__jar-shadow" id="jarShadow"></div>
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -225,168 +286,100 @@
         <p class="products__subtitle">Every jar is filled with golden goodness. Choose your perfect pack.</p>
       </header>
 
-      <div class="products__grid" role="list" aria-label="Product list">
+      <!-- Interactive Product Selector -->
+      <div class="product-selector">
+        
+        <!-- Left: Visual Showcase -->
+        <div class="selector__visual">
+          <div class="selector__visual-inner">
+            <div class="selector__jar-glow"></div>
+            <!-- Ambient churning gold particles -->
+            <div class="selector__jar-churning" id="selectorChurning"></div>
+            
+            <!-- Dynamic Ghee Jar -->
+            <div class="selector__jar-wrapper">
+              <div class="selector-jar" id="selectorJar" style="--selector-jar-scale: 1.0;">
+                <div class="selector-jar__body">
+                  <div class="selector-jar__ghee">
+                    <div class="selector-jar__ghee-surface"></div>
+                    <div class="selector-jar__ghee-shimmer"></div>
+                  </div>
+                  <div class="selector-jar__label">
+                    <span class="selector-jar__label-brand">Pobitra</span>
+                    <span class="selector-jar__label-type" id="selectorJarLabelSize">400g</span>
+                  </div>
+                </div>
+                <div class="selector-jar__lid">
+                  <div class="selector-jar__lid-highlight"></div>
+                  <div class="selector-jar__lid-ridges"></div>
+                </div>
+                <div class="selector-jar__neck-rope"></div>
+                <div class="selector-jar__tag">
+                  <span class="selector-jar__tag-string"></span>
+                  <span class="selector-jar__tag-card">Pure A2</span>
+                </div>
+                <div class="selector-jar__reflection"></div>
+                <div class="selector-jar__light"></div>
+              </div>
+            </div>
+            <div class="selector__jar-shadow" id="selectorJarShadow" style="--selector-jar-scale: 1.0;"></div>
+          </div>
+        </div>
 
-        <!-- Product 1: 100g -->
-        <article class="product-card" role="listitem" data-pack="100g" data-price="149" data-ppg="1.49">
-          <div class="product-card__image-wrapper">
-            <div class="product-card__icon">
-              <svg viewBox="0 0 48 48" fill="none" aria-hidden="true">
-                <rect x="12" y="8" width="24" height="32" rx="4" stroke="currentColor" stroke-width="2"/>
-                <rect x="14" y="20" width="20" height="18" rx="2" fill="currentColor" opacity="0.15"/>
-                <rect x="16" y="6" width="16" height="4" rx="2" stroke="currentColor" stroke-width="2"/>
-              </svg>
+        <!-- Right: Configurator Panel -->
+        <div class="selector__config">
+          <div class="selector__config-card">
+            <div class="selector__badge-row">
+              <span class="selector__badge selector__badge--savings" id="selectorSavingsBadge">Save 25%</span>
+              <span class="selector__badge selector__badge--popular" id="selectorPopularBadge" style="display: inline-block;">Most Popular</span>
             </div>
-            <span class="product-card__size">100g</span>
-          </div>
-          <div class="product-card__content">
-            <h3 class="product-card__name">Starter Pack</h3>
-            <p class="product-card__description">Try our pure bilona ghee. Perfect for first-time buyers.</p>
-            <div class="product-card__footer">
-              <span class="product-card__price">₹149</span>
-              <span class="product-card__free-delivery">Free Delivery</span>
+            
+            <h3 class="selector__title" id="selectorTitle">Family Pack</h3>
+            <p class="selector__description" id="selectorDescription">Our most loved pack. Perfect for a month of delicious, aromatic family meals.</p>
+            
+            <!-- Tactile Size Switcher Track -->
+            <div class="selector__size-group">
+              <label class="selector__label">Select Pack Size</label>
+              <div class="selector__size-track" id="selectorSizeTrack" role="radiogroup" aria-label="Pack size selection">
+                <button type="button" class="selector__size-pill" data-size="100g" role="radio" aria-checked="false">100g</button>
+                <button type="button" class="selector__size-pill" data-size="200g" role="radio" aria-checked="false">200g</button>
+                <button type="button" class="selector__size-pill is-active" data-size="400g" role="radio" aria-checked="true">400g</button>
+                <button type="button" class="selector__size-pill" data-size="800g" role="radio" aria-checked="false">800g</button>
+                <button type="button" class="selector__size-pill" data-size="1kg" role="radio" aria-checked="false">1kg</button>
+              </div>
             </div>
-          </div>
-          <div class="product-card__qty-row">
-            <div class="card-qty">
-              <button type="button" class="card-qty__btn card-qty__btn--dec" aria-label="Decrease quantity">−</button>
-              <span class="card-qty__value">1</span>
-              <button type="button" class="card-qty__btn card-qty__btn--inc" aria-label="Increase quantity">+</button>
-            </div>
-            <a href="#order" class="btn btn--secondary card-select-btn">Select</a>
-          </div>
-        </article>
 
-        <!-- Product 2: 200g -->
-        <article class="product-card" role="listitem" data-pack="200g" data-price="230" data-ppg="1.15">
-          <div class="product-card__image-wrapper">
-            <div class="product-card__icon">
-              <svg viewBox="0 0 48 48" fill="none" aria-hidden="true">
-                <rect x="10" y="6" width="28" height="36" rx="4" stroke="currentColor" stroke-width="2"/>
-                <rect x="12" y="18" width="24" height="22" rx="2" fill="currentColor" opacity="0.15"/>
-                <rect x="14" y="4" width="20" height="4" rx="2" stroke="currentColor" stroke-width="2"/>
-              </svg>
+            <!-- Price & Delivery info -->
+            <div class="selector__price-row">
+              <div class="selector__price-group">
+                <span class="selector__price" id="selectorPrice">₹449</span>
+                <span class="selector__delivery">Free Delivery</span>
+              </div>
+              <span class="selector__unit-price" id="selectorUnitPrice">₹1.12 / g</span>
             </div>
-            <span class="product-card__size">200g</span>
-          </div>
-          <div class="product-card__content">
-            <h3 class="product-card__name">Couple Pack</h3>
-            <p class="product-card__description">Golden goodness for two. Lasts about two weeks.</p>
-            <div class="product-card__footer">
-              <span class="product-card__price">₹230</span>
-              <span class="product-card__free-delivery">Free Delivery</span>
-            </div>
-          </div>
-          <div class="product-card__qty-row">
-            <div class="card-qty">
-              <button type="button" class="card-qty__btn card-qty__btn--dec" aria-label="Decrease quantity">−</button>
-              <span class="card-qty__value">1</span>
-              <button type="button" class="card-qty__btn card-qty__btn--inc" aria-label="Increase quantity">+</button>
-            </div>
-            <a href="#order" class="btn btn--secondary card-select-btn">Select</a>
-          </div>
-        </article>
 
-        <!-- Product 3: 400g (Most Popular) -->
-        <article class="product-card product-card--popular" role="listitem" data-pack="400g" data-price="449" data-ppg="1.12">
-          <span class="product-card__badge">Most Popular</span>
-          <div class="product-card__image-wrapper">
-            <div class="product-card__icon">
-              <svg viewBox="0 0 48 48" fill="none" aria-hidden="true">
-                <rect x="8" y="4" width="32" height="40" rx="4" stroke="currentColor" stroke-width="2"/>
-                <rect x="10" y="16" width="28" height="26" rx="2" fill="currentColor" opacity="0.15"/>
-                <rect x="12" y="2" width="24" height="4" rx="2" stroke="currentColor" stroke-width="2"/>
-              </svg>
+            <!-- Quantity & Actions -->
+            <div class="selector__actions">
+              <div class="selector__qty-group">
+                <label class="selector__label">Quantity</label>
+                <div class="selector-qty">
+                  <button type="button" class="selector-qty__btn" id="selectorQtyDec" aria-label="Decrease quantity">−</button>
+                  <span class="selector-qty__value" id="selectorQtyValue">1</span>
+                  <button type="button" class="selector-qty__btn" id="selectorQtyInc" aria-label="Increase quantity">+</button>
+                </div>
+              </div>
+              
+              <button type="button" class="btn btn--primary btn--lg selector__checkout-btn" id="selectorCheckoutBtn">
+                Proceed to Delivery Info
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true" style="margin-left: 8px;">
+                  <path d="M5 12h14M12 5l7 7-7 7" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+              </button>
             </div>
-            <span class="product-card__size">400g</span>
+            
           </div>
-          <div class="product-card__content">
-            <h3 class="product-card__name">Family Pack</h3>
-            <p class="product-card__description">Our most loved pack. Perfect for a month of delicious meals.</p>
-            <div class="product-card__footer">
-              <span class="product-card__price">₹449</span>
-              <span class="product-card__free-delivery">Free Delivery</span>
-            </div>
-          </div>
-          <div class="product-card__qty-row">
-            <div class="card-qty">
-              <button type="button" class="card-qty__btn card-qty__btn--dec" aria-label="Decrease quantity">−</button>
-              <span class="card-qty__value">1</span>
-              <button type="button" class="card-qty__btn card-qty__btn--inc" aria-label="Increase quantity">+</button>
-            </div>
-            <a href="#order" class="btn btn--primary card-select-btn">Select</a>
-          </div>
-        </article>
+        </div>
 
-        <!-- Product 4: 800g -->
-        <article class="product-card" role="listitem" data-pack="800g" data-price="879" data-ppg="1.10">
-          <div class="product-card__image-wrapper">
-            <div class="product-card__icon">
-              <svg viewBox="0 0 48 48" fill="none" aria-hidden="true">
-                <rect x="6" y="2" width="36" height="44" rx="4" stroke="currentColor" stroke-width="2"/>
-                <rect x="8" y="14" width="32" height="30" rx="2" fill="currentColor" opacity="0.15"/>
-                <rect x="10" y="0" width="28" height="4" rx="2" stroke="currentColor" stroke-width="2"/>
-              </svg>
-            </div>
-            <span class="product-card__size">800g</span>
-          </div>
-          <div class="product-card__content">
-            <h3 class="product-card__name">Value Pack</h3>
-            <p class="product-card__description">Twice the goodness. Best value for larger families.</p>
-            <div class="product-card__footer">
-              <span class="product-card__price">₹879</span>
-              <span class="product-card__free-delivery">Free Delivery</span>
-            </div>
-          </div>
-          <div class="product-card__qty-row">
-            <div class="card-qty">
-              <button type="button" class="card-qty__btn card-qty__btn--dec" aria-label="Decrease quantity">−</button>
-              <span class="card-qty__value">1</span>
-              <button type="button" class="card-qty__btn card-qty__btn--inc" aria-label="Increase quantity">+</button>
-            </div>
-            <a href="#order" class="btn btn--secondary card-select-btn">Select</a>
-          </div>
-        </article>
-
-        <!-- Product 5: 1kg -->
-        <article class="product-card" role="listitem" data-pack="1kg" data-price="1049" data-ppg="1.05">
-          <div class="product-card__image-wrapper">
-            <div class="product-card__icon">
-              <svg viewBox="0 0 48 48" fill="none" aria-hidden="true">
-                <rect x="4" y="0" width="40" height="48" rx="4" stroke="currentColor" stroke-width="2"/>
-                <rect x="6" y="12" width="36" height="34" rx="2" fill="currentColor" opacity="0.15"/>
-                <rect x="8" y="-2" width="32" height="4" rx="2" stroke="currentColor" stroke-width="2"/>
-              </svg>
-            </div>
-            <span class="product-card__size">1kg</span>
-          </div>
-          <div class="product-card__content">
-            <h3 class="product-card__name">Ultimate Pack</h3>
-            <p class="product-card__description">One full kilogram. Best value for the whole family.</p>
-            <div class="product-card__footer">
-              <span class="product-card__price">₹1,049</span>
-              <span class="product-card__free-delivery">Free Delivery</span>
-            </div>
-          </div>
-          <div class="product-card__qty-row">
-            <div class="card-qty">
-              <button type="button" class="card-qty__btn card-qty__btn--dec" aria-label="Decrease quantity">−</button>
-              <span class="card-qty__value">1</span>
-              <button type="button" class="card-qty__btn card-qty__btn--inc" aria-label="Increase quantity">+</button>
-            </div>
-            <a href="#order" class="btn btn--secondary card-select-btn">Select</a>
-          </div>
-        </article>
-
-      </div>
-
-      <!-- Scroll Indicator Dots (Mobile) -->
-      <div class="products__scroll-dots" id="scrollDots" aria-hidden="true">
-        <span class="products__scroll-dot is-active"></span>
-        <span class="products__scroll-dot"></span>
-        <span class="products__scroll-dot"></span>
-        <span class="products__scroll-dot"></span>
-        <span class="products__scroll-dot"></span>
       </div>
 
       <!-- Subscription Banner -->
@@ -577,9 +570,9 @@
                 <option value="">Choose a pack...</option>
                 <option value="100g" data-price="149">100g — ₹149</option>
                 <option value="200g" data-price="230">200g — ₹230</option>
-                <option value="400g" data-price="449" selected>400g — ₹449 (Popular)</option>
-                <option value="800g" data-price="879">800g — ₹879</option>
-                <option value="1kg" data-price="1049">1kg — ₹1,049</option>
+                <option value="400g" data-price="449" data-cod="true" selected>400g — ₹449 (Popular)</option>
+                <option value="800g" data-price="879" data-cod="true">800g — ₹879</option>
+                <option value="1kg" data-price="1049" data-cod="true">1kg — ₹1,049</option>
               </select>
             </div>
 

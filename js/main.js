@@ -12,16 +12,16 @@ document.addEventListener('DOMContentLoaded', function() {
   initMarqueeAnimation();
   initFloatingBadges();
   initQuantityButtons();
-  initCardQuantityButtons();
+  initProductSelector();
   initMobileMenu();
   initSmoothScroll();
   initBackToTop();
   initStickyCta();
-  initScrollDots();
   initHeroCounter();
   initHeroScrollIndicator();
   initJarInteraction();
   initHeroMotionGraphics();
+  initMagneticButtons();
   loadApprovedReviews();
   loadSettings();
 });
@@ -133,7 +133,7 @@ function initMarqueeAnimation() {
 
 // ============ Floating Badges Animation ============
 function initFloatingBadges() {
-  const badges = document.querySelectorAll('.hero-badge');
+  const badges = document.querySelectorAll('.hero__floating-badge');
   badges.forEach((badge, index) => {
     badge.style.animationDelay = `${index * 0.5}s`;
   });
@@ -171,66 +171,265 @@ function initQuantityButtons() {
   });
 }
 
-// ============ Card Quantity Buttons ============
-function initCardQuantityButtons() {
-  const cards = document.querySelectorAll('.product-card');
-
-  cards.forEach(card => {
-    const decBtn = card.querySelector('.card-qty__btn--dec');
-    const incBtn = card.querySelector('.card-qty__btn--inc');
-    const valueEl = card.querySelector('.card-qty__value');
-    const selectBtn = card.querySelector('.card-select-btn');
-
-    if (!decBtn || !incBtn || !valueEl) return;
-
-    let qty = 1;
-
-    decBtn.addEventListener('click', function() {
-      if (qty > 1) {
-        qty--;
-        valueEl.textContent = qty;
-        decBtn.disabled = qty <= 1;
-      }
-    });
-
-    incBtn.addEventListener('click', function() {
-      if (qty < 10) {
-        qty++;
-        valueEl.textContent = qty;
-        decBtn.disabled = false;
-      }
-    });
-
-    decBtn.disabled = true;
-
-    if (selectBtn) {
-      selectBtn.addEventListener('click', function(e) {
-        e.preventDefault();
-        const pack = card.dataset.pack;
-        const price = card.dataset.price;
-        selectPackWithQty(pack, price, qty);
-      });
+// ============ Interactive Product Configurator ============
+function initProductSelector() {
+  const VARIANTS = {
+    '100g': {
+      title: 'Trial Pack',
+      description: 'Pure artisanal ghee made using the traditional bilona method. Perfect for daily cooking and small households.',
+      price: 149,
+      unitPrice: '₹1.49 / g',
+      savings: 'Intro Price',
+      badge: '',
+      scale: 0.8
+    },
+    '200g': {
+      title: 'Standard Pack',
+      description: 'A generous portion of our premium ghee. Ideal for regular cooking and gifting to loved ones.',
+      price: 230,
+      unitPrice: '₹1.15 / g',
+      savings: 'Save 22%',
+      badge: '',
+      scale: 0.9
+    },
+    '400g': {
+      title: 'Family Pack',
+      description: 'Our most loved pack! The perfect balance of quality and quantity for families who cook with love.',
+      price: 449,
+      unitPrice: '₹1.12 / g',
+      savings: 'Save 25%',
+      badge: 'Most Popular',
+      scale: 1.05
+    },
+    '800g': {
+      title: 'Connoisseur Pack',
+      description: 'For the ghee connoisseurs. A substantial pack for families who use ghee generously every day.',
+      price: 879,
+      unitPrice: '₹1.10 / g',
+      savings: 'Save 26%',
+      badge: 'Best Value',
+      scale: 1.18
+    },
+    '1kg': {
+      title: 'Value Pack',
+      description: 'The ultimate ghee experience. One full kilogram of pure, handcrafted goodness at the best value.',
+      price: 1049,
+      unitPrice: '₹1.05 / g',
+      savings: 'Save 30%',
+      badge: 'Super Saver',
+      scale: 1.25
     }
+  };
+
+  const configCard = document.querySelector('.selector__config-card');
+  const sizePills = document.querySelectorAll('.selector__size-pill');
+  const jarEl = document.getElementById('selectorJar');
+  const jarLabelSize = document.getElementById('selectorJarLabelSize');
+  const shadowEl = document.getElementById('selectorJarShadow');
+  const titleEl = document.getElementById('selectorTitle');
+  const descEl = document.getElementById('selectorDescription');
+  const savingsBadge = document.getElementById('selectorSavingsBadge');
+  const popularBadge = document.getElementById('selectorPopularBadge');
+  const priceEl = document.getElementById('selectorPrice');
+  const unitPriceEl = document.getElementById('selectorUnitPrice');
+  
+  const qtyDecBtn = document.getElementById('selectorQtyDec');
+  const qtyIncBtn = document.getElementById('selectorQtyInc');
+  const qtyValEl = document.getElementById('selectorQtyValue');
+  
+  const checkoutBtn = document.getElementById('selectorCheckoutBtn');
+  
+  // Main form inputs
+  const mainPackSelect = document.getElementById('packSize');
+  const mainQtyInput = document.getElementById('quantity');
+
+  let currentSize = '400g';
+  let currentQty = 1;
+
+  // Ambient Churning Gold Particles Spawner
+  const churningContainer = document.getElementById('selectorChurning');
+  if (churningContainer) {
+    setInterval(() => {
+      const particle = document.createElement('div');
+      particle.className = 'selector__jar-churning-particle';
+      
+      const randomX = Math.random() * 80 + 10;
+      particle.style.left = `${randomX}%`;
+      
+      const duration = Math.random() * 0.8 + 1.2;
+      const size = Math.random() * 3 + 2;
+      
+      particle.style.animationDuration = `${duration}s`;
+      particle.style.width = `${size}px`;
+      particle.style.height = `${size}px`;
+      
+      churningContainer.appendChild(particle);
+      
+      setTimeout(() => {
+        particle.remove();
+      }, duration * 1000);
+    }, 250);
+  }
+
+  // Update Selector UI based on size selection
+  function updateSelectorSize(size, isSourceForm = false) {
+    if (!VARIANTS[size]) return;
+    currentSize = size;
+    const data = VARIANTS[size];
+
+    // Scale jar elements
+    if (jarEl) jarEl.style.setProperty('--selector-jar-scale', data.scale);
+    if (shadowEl) shadowEl.style.setProperty('--selector-jar-scale', data.scale);
+
+    // Apply visual change fade animation
+    if (configCard) {
+      configCard.classList.add('selector__config-card--changing');
+    }
+
+    setTimeout(() => {
+      // Update text info
+      if (titleEl) titleEl.textContent = data.title;
+      if (descEl) descEl.textContent = data.description;
+      if (priceEl) priceEl.textContent = formatCurrency(data.price);
+      if (unitPriceEl) unitPriceEl.textContent = data.unitPrice;
+      if (jarLabelSize) jarLabelSize.textContent = size;
+
+      // Update badges
+      if (savingsBadge) {
+        savingsBadge.textContent = data.savings;
+        savingsBadge.style.display = data.savings ? 'inline-block' : 'none';
+      }
+      if (popularBadge) {
+        if (data.badge) {
+          popularBadge.textContent = data.badge;
+          popularBadge.style.display = 'inline-block';
+        } else {
+          popularBadge.style.display = 'none';
+        }
+      }
+
+      // Fade back in
+      if (configCard) {
+        configCard.classList.remove('selector__config-card--changing');
+      }
+    }, 250);
+
+    // Sync size pills selection
+    sizePills.forEach(pill => {
+      const active = pill.getAttribute('data-size') === size;
+      pill.classList.toggle('is-active', active);
+      pill.setAttribute('aria-checked', active ? 'true' : 'false');
+    });
+
+    // Synchronize to the main order form
+    if (!isSourceForm && mainPackSelect) {
+      mainPackSelect.value = size;
+      mainPackSelect.dispatchEvent(new Event('change'));
+    }
+  }
+
+  // Click listeners for pills
+  sizePills.forEach(pill => {
+    pill.addEventListener('click', function() {
+      const size = this.getAttribute('data-size');
+      if (size !== currentSize) {
+        updateSelectorSize(size);
+      }
+    });
   });
-}
 
-function selectPackWithQty(packSize, price, qty) {
-  const packSelect = document.getElementById('packSize');
-  const quantityInput = document.getElementById('quantity');
+  // Quantity controllers
+  function updateSelectorQty(qty, isSourceForm = false) {
+    qty = parseInt(qty) || 1;
+    if (qty < 1) qty = 1;
+    if (qty > 10) qty = 10;
+    currentQty = qty;
 
-  if (packSelect) {
-    packSelect.value = packSize;
-    updateOrderSummary();
+    if (qtyValEl) qtyValEl.textContent = qty;
+
+    // Synchronize back to the main order form
+    if (!isSourceForm && mainQtyInput) {
+      mainQtyInput.value = qty;
+      mainQtyInput.dispatchEvent(new Event('change'));
+    }
   }
 
-  if (quantityInput) {
-    quantityInput.value = qty;
-    updateOrderSummary();
+  if (qtyDecBtn) {
+    qtyDecBtn.addEventListener('click', () => {
+      if (currentQty > 1) {
+        updateSelectorQty(currentQty - 1);
+      }
+    });
   }
 
-  const orderForm = document.getElementById('order');
-  if (orderForm) {
-    orderForm.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  if (qtyIncBtn) {
+    qtyIncBtn.addEventListener('click', () => {
+      if (currentQty < 10) {
+        updateSelectorQty(currentQty + 1);
+      }
+    });
+  }
+
+  // Checkout redirect button
+  if (checkoutBtn) {
+    checkoutBtn.addEventListener('click', () => {
+      const orderSection = document.getElementById('order');
+      if (orderSection) {
+        orderSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        const nameInput = document.getElementById('customerName');
+        if (nameInput) {
+          setTimeout(() => nameInput.focus(), 600);
+        }
+      }
+    });
+  }
+
+  // Sync back from the main order form
+  if (mainPackSelect) {
+    mainPackSelect.addEventListener('change', function() {
+      if (this.value && this.value !== currentSize) {
+        updateSelectorSize(this.value, true);
+      }
+    });
+  }
+
+  if (mainQtyInput) {
+    mainQtyInput.addEventListener('change', function() {
+      const val = parseInt(this.value) || 1;
+      if (val !== currentQty) {
+        updateSelectorQty(val, true);
+      }
+    });
+  }
+
+  // Tactile touch horizontal drag on pills track
+  const sizeTrack = document.getElementById('selectorSizeTrack');
+  if (sizeTrack) {
+    let startX = 0;
+    let scrollLeft = 0;
+    let isDown = false;
+
+    sizeTrack.addEventListener('mousedown', (e) => {
+      isDown = true;
+      startX = e.pageX - sizeTrack.offsetLeft;
+      scrollLeft = sizeTrack.scrollLeft;
+    });
+
+    sizeTrack.addEventListener('mouseleave', () => {
+      isDown = false;
+    });
+
+    sizeTrack.addEventListener('mouseup', () => {
+      isDown = false;
+    });
+
+    sizeTrack.addEventListener('mousemove', (e) => {
+      if (!isDown) return;
+      e.preventDefault();
+      const x = e.pageX - sizeTrack.offsetLeft;
+      const walk = (x - startX) * 1.5;
+      sizeTrack.scrollLeft = scrollLeft - walk;
+    });
   }
 }
 
@@ -279,34 +478,7 @@ function initStickyCta() {
   }, 50));
 }
 
-// ============ Scroll Dots Indicator ============
-function initScrollDots() {
-  const grid = document.querySelector('.products__grid');
-  const dots = document.querySelectorAll('.products__scroll-dot');
-  const cards = document.querySelectorAll('.product-card');
 
-  if (!grid || dots.length === 0 || cards.length === 0) return;
-
-  grid.addEventListener('scroll', throttle(function() {
-    const scrollLeft = grid.scrollLeft;
-    const cardWidth = cards[0].offsetWidth + 16;
-    const activeIndex = Math.round(scrollLeft / cardWidth);
-
-    dots.forEach((dot, i) => {
-      dot.classList.toggle('is-active', i === activeIndex);
-    });
-  }, 50));
-
-  dots.forEach((dot, i) => {
-    dot.addEventListener('click', function() {
-      const cardWidth = cards[0].offsetWidth + 16;
-      grid.scrollTo({
-        left: cardWidth * i,
-        behavior: 'smooth'
-      });
-    });
-  });
-}
 
 // ============ Hero Counter Animation ============
 function initHeroCounter() {
@@ -368,6 +540,11 @@ function initJarInteraction() {
   const scene = document.getElementById('jarScene');
   const light = document.getElementById('jarLight');
   const shadow = document.getElementById('jarShadow');
+  const badges = document.querySelectorAll('.hero__floating-badge');
+  const churningContainer = document.getElementById('jarChurning');
+  const heroSection = document.querySelector('.hero');
+  const heroAura = document.getElementById('heroAura');
+  const tagEl = document.getElementById('heroJarTag');
 
   if (!container || !scene) return;
 
@@ -376,6 +553,95 @@ function initJarInteraction() {
   let currentY = 0;
   let targetX = 0;
   let targetY = 0;
+
+  // Tag swinging variables
+  let tagRotation = 10;
+  let tagVelocity = 0;
+  let previousY = 0;
+
+  // Disable CSS transitions on floating badges during JS control
+  badges.forEach(badge => {
+    badge.style.transition = 'none';
+  });
+
+  // Churning Gold Particles Spawner
+  let churningInterval = null;
+
+  function startChurning() {
+    if (churningInterval) return;
+    churningInterval = setInterval(() => {
+      if (!churningContainer) return;
+      const particle = document.createElement('div');
+      particle.className = 'hero__jar-churning-particle';
+      
+      const randomX = Math.random() * 80 + 10; // 10% to 90% horizontal range
+      particle.style.left = `${randomX}%`;
+      
+      const duration = Math.random() * 0.8 + 1.2; // 1.2s to 2s lifespan
+      const size = Math.random() * 3 + 2; // 2px to 5px size
+      
+      particle.style.animationDuration = `${duration}s`;
+      particle.style.width = `${size}px`;
+      particle.style.height = `${size}px`;
+      
+      churningContainer.appendChild(particle);
+      
+      setTimeout(() => {
+        particle.remove();
+      }, duration * 1000);
+    }, 150);
+  }
+
+  function stopChurning() {
+    if (churningInterval) {
+      clearInterval(churningInterval);
+      churningInterval = null;
+    }
+  }
+
+  const jar = document.querySelector('.hero__jar');
+  if (jar) {
+    jar.addEventListener('mouseenter', startChurning);
+    jar.addEventListener('mouseleave', stopChurning);
+    jar.addEventListener('touchstart', startChurning, { passive: true });
+    jar.addEventListener('touchend', stopChurning);
+  }
+
+  // Aura follower tracking
+  if (heroSection && heroAura) {
+    heroSection.addEventListener('mousemove', function(e) {
+      const rect = heroSection.getBoundingClientRect();
+      const x = e.clientX - rect.left;
+      const y = e.clientY - rect.top;
+      heroAura.style.background = `radial-gradient(circle 350px at ${x}px ${y}px, rgba(218, 165, 32, 0.16), transparent 70%)`;
+    });
+
+    heroSection.addEventListener('mouseenter', function() {
+      heroAura.style.opacity = '1';
+    });
+
+    heroSection.addEventListener('mouseleave', function() {
+      heroAura.style.opacity = '0';
+    });
+  }
+
+  // Hotspots toggling for touchscreens & clicks
+  const hotspots = document.querySelectorAll('.hero__hotspot');
+  hotspots.forEach(hotspot => {
+    hotspot.addEventListener('click', function(e) {
+      e.stopPropagation();
+      const isActive = this.classList.contains('is-active');
+      hotspots.forEach(h => h.classList.remove('is-active'));
+      if (!isActive) {
+        this.classList.add('is-active');
+      }
+    });
+  });
+
+  // Close hotspots on clicking outside
+  document.addEventListener('click', function() {
+    hotspots.forEach(h => h.classList.remove('is-active'));
+  });
 
   function updateTilt(clientX, clientY) {
     const rect = scene.getBoundingClientRect();
@@ -419,6 +685,35 @@ function initJarInteraction() {
     currentY += (targetY - currentY) * 0.12;
 
     container.style.transform = `rotateX(${currentX}deg) rotateY(${currentY}deg)`;
+
+    // Update floating badges parallax and idle oscillation
+    const time = Date.now() * 0.001;
+    badges.forEach((badge, idx) => {
+      const depth = parseFloat(badge.getAttribute('data-depth')) || 0.15;
+      
+      // Calculate depth translation (using currentX and currentY for smooth dampening)
+      const shiftX = currentY * depth * 8;
+      const shiftY = -currentX * depth * 8;
+
+      // Add elegant floating sine oscillation
+      const floatY = Math.sin(time + idx * 1.5) * 8;
+      const floatRot = Math.cos(time * 0.8 + idx) * 2;
+
+      badge.style.transform = `translate3d(${shiftX}px, ${shiftY + floatY}px, 30px) rotate(${floatRot}deg)`;
+    });
+
+    // Tag swinging spring physics
+    if (tagEl) {
+      const force = -(currentY - previousY) * 2.2;
+      const gravityForce = -tagRotation * 0.08;
+      tagVelocity += force + gravityForce;
+      tagVelocity *= 0.86; // Damping/air resistance
+      tagRotation += tagVelocity;
+
+      const ambientSway = Math.sin(time * 2.0) * 1.2;
+      tagEl.style.transform = `rotate(${tagRotation + ambientSway}deg)`;
+    }
+    previousY = currentY;
 
     requestAnimationFrame(animate);
   }
@@ -487,12 +782,12 @@ function initHeroMotionGraphics() {
     waves = [];
     for (let i = 0; i < 3; i++) {
       waves.push({
-        y: canvas.offsetHeight * (0.6 + i * 0.15),
-        amplitude: 20 + i * 10,
-        frequency: 0.003 + i * 0.001,
-        speed: 0.008 + i * 0.003,
+        y: canvas.offsetHeight * (0.65 + i * 0.1),
+        amplitude: 15 + i * 8,
+        frequency: 0.002 + i * 0.0008,
+        speed: 0.005 + i * 0.002,
         offset: Math.random() * Math.PI * 2,
-        opacity: 0.03 + i * 0.02
+        opacity: 0.04 + i * 0.02
       });
     }
   }
@@ -502,17 +797,30 @@ function initHeroMotionGraphics() {
       ctx.beginPath();
       ctx.moveTo(0, canvas.offsetHeight);
 
-      for (let x = 0; x <= canvas.offsetWidth; x += 2) {
-        const y = wave.y + Math.sin(x * wave.frequency + wave.offset + time * wave.speed) * wave.amplitude;
-        ctx.lineTo(x, y);
+      for (let x = 0; x <= canvas.offsetWidth; x += 3) {
+        // Multi-layered sine calculation for organic liquid curves
+        const mainWave = Math.sin(x * wave.frequency + wave.offset + time * wave.speed) * wave.amplitude;
+        const subWave = Math.sin(x * wave.frequency * 2.3 + wave.offset * 0.5 - time * wave.speed * 1.4) * (wave.amplitude * 0.35);
+        const microWave = Math.cos(x * wave.frequency * 4.1 + time * wave.speed * 2.2) * (wave.amplitude * 0.1);
+        
+        const y = wave.y + mainWave + subWave + microWave;
+        if (x === 0) {
+          ctx.lineTo(0, y);
+        } else {
+          ctx.lineTo(x, y);
+        }
       }
 
       ctx.lineTo(canvas.offsetWidth, canvas.offsetHeight);
       ctx.closePath();
 
-      const gradient = ctx.createLinearGradient(0, wave.y - wave.amplitude, 0, canvas.offsetHeight);
-      gradient.addColorStop(0, `rgba(218, 165, 32, ${wave.opacity})`);
-      gradient.addColorStop(1, 'rgba(218, 165, 32, 0)');
+      // Premium liquid gold gradient stops
+      const gradient = ctx.createLinearGradient(0, wave.y - wave.amplitude * 1.5, 0, canvas.offsetHeight);
+      gradient.addColorStop(0, `rgba(255, 223, 0, ${wave.opacity * 1.8})`); // spec highlight
+      gradient.addColorStop(0.2, `rgba(218, 165, 32, ${wave.opacity})`);  // rich gold
+      gradient.addColorStop(0.7, `rgba(139, 90, 0, ${wave.opacity * 0.3})`); // deep amber
+      gradient.addColorStop(1, 'rgba(26, 20, 16, 0)');
+      
       ctx.fillStyle = gradient;
       ctx.fill();
     });
@@ -983,6 +1291,37 @@ function scrollToReview() {
   if (reviewForm) {
     reviewForm.scrollIntoView({ behavior: 'smooth', block: 'start' });
   }
+}
+
+// ============ Magnetic Buttons Interaction ============
+function initMagneticButtons() {
+  if (window.innerWidth < 992) return; // Disable on mobile/tablet viewports
+  const magneticBtns = document.querySelectorAll('.hero__cta, .hero__cta-secondary, .btn--primary');
+
+  document.addEventListener('mousemove', function(e) {
+    if (window.innerWidth < 992) return;
+    magneticBtns.forEach(btn => {
+      const rect = btn.getBoundingClientRect();
+      const btnX = rect.left + rect.width / 2;
+      const btnY = rect.top + rect.height / 2;
+
+      const distX = e.clientX - btnX;
+      const distY = e.clientY - btnY;
+      const distance = Math.sqrt(distX * distX + distY * distY);
+
+      if (distance < 80) {
+        const pull = (80 - distance) / 80;
+        const targetX = distX * pull * 0.35;
+        const targetY = distY * pull * 0.35;
+
+        btn.style.transform = `translate3d(${targetX}px, ${targetY}px, 0)`;
+        btn.style.transition = 'transform 0.1s ease-out';
+      } else {
+        btn.style.transform = 'translate3d(0, 0, 0)';
+        btn.style.transition = 'transform 0.4s cubic-bezier(0.25, 1, 0.5, 1)';
+      }
+    });
+  });
 }
 
 // ============ Export global functions ============
