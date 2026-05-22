@@ -1013,13 +1013,34 @@ function updateOrderSummary() {
 function handleOrderSubmit() {
   const name = document.getElementById('customerName')?.value.trim();
   const phone = document.getElementById('customerPhone')?.value.trim();
-  const address = document.getElementById('customerAddress')?.value.trim();
+  const addrLine1 = document.getElementById('addrLine1')?.value.trim();
+  const addrLine2 = document.getElementById('addrLine2')?.value.trim();
+  const addrLandmark = document.getElementById('addrLandmark')?.value.trim();
+  const addrPincode = document.getElementById('addrPincode')?.value.trim();
+  const addrCity = document.getElementById('addrCity')?.value.trim();
+  const addrState = document.getElementById('addrState')?.value;
   const packSelect = document.getElementById('packSize');
   const quantity = document.getElementById('quantity')?.value || '1';
 
   // Validation
-  if (!name || !phone || !address) {
-    alert('Please fill in all required fields.');
+  const required = [
+    { val: name, label: 'Full Name' },
+    { val: phone, label: 'WhatsApp Number' },
+    { val: addrLine1, label: 'Address Line 1' },
+    { val: addrLine2, label: 'Address Line 2' },
+    { val: addrPincode, label: 'Pincode' },
+    { val: addrCity, label: 'City' },
+    { val: addrState, label: 'State' },
+  ];
+
+  const missing = required.filter(f => !f.val).map(f => f.label);
+  if (missing.length > 0) {
+    alert('Please fill in all required fields:\n• ' + missing.join('\n• '));
+    return;
+  }
+
+  if (!/^[0-9]{6}$/.test(addrPincode)) {
+    alert('Please enter a valid 6-digit pincode.');
     return;
   }
 
@@ -1028,6 +1049,11 @@ function handleOrderSubmit() {
   const selectedOption = packSelect.options[packSelect.selectedIndex];
   const packSize = selectedOption.value;
   const price = selectedOption.dataset.price;
+
+  // Build full address
+  let fullAddress = `${addrLine1}, ${addrLine2}`;
+  if (addrLandmark) fullAddress += `, Landmark: ${addrLandmark}`;
+  fullAddress += `, ${addrCity}, ${addrState} - ${addrPincode}`;
 
   // Get payment method
   const paymentRadios = document.querySelectorAll('input[name="paymentMethod"]');
@@ -1048,7 +1074,9 @@ function handleOrderSubmit() {
 *Customer Details:*
 Name: ${name}
 Phone: ${phone}
-Address: ${address}
+
+*Delivery Address:*
+${fullAddress}
 
 *Order Details:*
 Product: Pobitra Ghee (${packSize})

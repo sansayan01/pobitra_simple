@@ -12,7 +12,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 
   <!-- Stylesheet -->
-  <link rel="stylesheet" href="css/style.css?v=7">
+  <link rel="stylesheet" href="css/style.css?v=8">
 </head>
 <body>
 
@@ -535,25 +535,91 @@
       <div class="order__layout">
         <form class="order__form" id="orderForm" novalidate>
 
-          <!-- Step 1: Personal Details -->
+          <!-- Step 1: Personal & Address Details -->
           <div class="order__step">
             <h3 class="order__step-title">
               <span class="order__step-number">1</span>
               Your Details
             </h3>
             <div class="form__group">
-              <label class="form__label" for="customerName">Full Name</label>
+              <label class="form__label" for="customerName">Full Name *</label>
               <input type="text" class="form__input" id="customerName" name="customerName" placeholder="Enter your name" required aria-required="true">
             </div>
 
             <div class="form__group">
-              <label class="form__label" for="customerPhone">WhatsApp Number</label>
+              <label class="form__label" for="customerPhone">WhatsApp Number *</label>
               <input type="tel" class="form__input" id="customerPhone" name="customerPhone" placeholder="10-digit mobile number" required aria-required="true" pattern="[0-9]{10}">
             </div>
 
+            <h4 class="form__section-title">Delivery Address <span style="font-weight:400;color:var(--stone-500);font-size:var(--text-xs);">(all fields required)</span></h4>
+
             <div class="form__group">
-              <label class="form__label" for="customerAddress">Delivery Address</label>
-              <textarea class="form__input" id="customerAddress" name="customerAddress" rows="3" placeholder="House no, street, landmark, pin code" required aria-required="true"></textarea>
+              <label class="form__label" for="addrLine1">Address Line 1 *</label>
+              <input type="text" class="form__input" id="addrLine1" name="addrLine1" placeholder="House / Flat / Apartment number" required aria-required="true">
+            </div>
+
+            <div class="form__group">
+              <label class="form__label" for="addrLine2">Address Line 2 *</label>
+              <input type="text" class="form__input" id="addrLine2" name="addrLine2" placeholder="Street / Area / Locality" required aria-required="true">
+            </div>
+
+            <div class="form__group">
+              <label class="form__label" for="addrLandmark">Landmark <span style="font-weight:400;color:var(--stone-500);">(optional)</span></label>
+              <input type="text" class="form__input" id="addrLandmark" name="addrLandmark" placeholder="Nearby landmark">
+            </div>
+
+            <div class="form__row">
+              <div class="form__group form__group--half">
+                <label class="form__label" for="addrPincode">Pincode *</label>
+                <input type="text" class="form__input" id="addrPincode" name="addrPincode" placeholder="6-digit pincode" required aria-required="true" pattern="[0-9]{6}" maxlength="6" inputmode="numeric">
+              </div>
+              <div class="form__group form__group--half">
+                <label class="form__label" for="addrCity">City *</label>
+                <input type="text" class="form__input" id="addrCity" name="addrCity" placeholder="City / Town" required aria-required="true">
+              </div>
+            </div>
+
+            <div class="form__group">
+              <label class="form__label" for="addrState">State *</label>
+              <select class="form__select" id="addrState" name="addrState" required aria-required="true">
+                <option value="">Select state...</option>
+                <option value="Andhra Pradesh">Andhra Pradesh</option>
+                <option value="Arunachal Pradesh">Arunachal Pradesh</option>
+                <option value="Assam">Assam</option>
+                <option value="Bihar">Bihar</option>
+                <option value="Chhattisgarh">Chhattisgarh</option>
+                <option value="Goa">Goa</option>
+                <option value="Gujarat">Gujarat</option>
+                <option value="Haryana">Haryana</option>
+                <option value="Himachal Pradesh">Himachal Pradesh</option>
+                <option value="Jharkhand">Jharkhand</option>
+                <option value="Karnataka">Karnataka</option>
+                <option value="Kerala">Kerala</option>
+                <option value="Madhya Pradesh">Madhya Pradesh</option>
+                <option value="Maharashtra">Maharashtra</option>
+                <option value="Manipur">Manipur</option>
+                <option value="Meghalaya">Meghalaya</option>
+                <option value="Mizoram">Mizoram</option>
+                <option value="Nagaland">Nagaland</option>
+                <option value="Odisha">Odisha</option>
+                <option value="Punjab">Punjab</option>
+                <option value="Rajasthan">Rajasthan</option>
+                <option value="Sikkim">Sikkim</option>
+                <option value="Tamil Nadu">Tamil Nadu</option>
+                <option value="Telangana">Telangana</option>
+                <option value="Tripura">Tripura</option>
+                <option value="Uttar Pradesh">Uttar Pradesh</option>
+                <option value="Uttarakhand">Uttarakhand</option>
+                <option value="West Bengal">West Bengal</option>
+                <option value="Andaman and Nicobar Islands">Andaman and Nicobar Islands</option>
+                <option value="Chandigarh">Chandigarh</option>
+                <option value="Dadra and Nagar Haveli and Daman and Diu">Dadra and Nagar Haveli and Daman and Diu</option>
+                <option value="Delhi">Delhi</option>
+                <option value="Jammu and Kashmir">Jammu and Kashmir</option>
+                <option value="Ladakh">Ladakh</option>
+                <option value="Lakshadweep">Lakshadweep</option>
+                <option value="Puducherry">Puducherry</option>
+              </select>
             </div>
           </div>
 
@@ -778,8 +844,8 @@
     </svg>
   </button>
 
-  <script src="js/data.js?v=6"></script>
-  <script src="js/utils.js?v=6"></script>
-  <script src="js/main.js?v=6"></script>
+  <script src="js/data.js?v=7"></script>
+  <script src="js/utils.js?v=7"></script>
+  <script src="js/main.js?v=7"></script>
 </body>
 </html>

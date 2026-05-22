@@ -2672,6 +2672,32 @@ table {
   margin-bottom: var(--space-5);
 }
 
+.form__row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-4);
+}
+
+.form__group--half {
+  margin-bottom: 0;
+}
+
+@media (max-width: 575px) {
+  .form__row {
+    grid-template-columns: 1fr;
+    gap: var(--space-5);
+  }
+}
+
+.form__section-title {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: var(--text-lg);
+  font-weight: 700;
+  color: var(--gold-primary);
+  margin-bottom: var(--space-4);
+  padding-top: var(--space-2);
+}
+
 .form__label {
   display: block;
   font-size: var(--text-sm);
