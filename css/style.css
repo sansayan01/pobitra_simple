@@ -3791,13 +3791,8 @@ table {
 
   .footer__copyright {
     font-size: var(--text-xs);
-  }
     word-break: break-word;
     overflow-wrap: break-word;
-  }
-
-  .footer__copyright {
-    font-size: var(--text-xs);
   }
 
   /* Back to Top */
