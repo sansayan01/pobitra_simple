@@ -960,6 +960,10 @@ function initOrderForm() {
 
   // Initialize order summary
   updateOrderSummary();
+
+  // Initialize location & pincode helpers
+  initLocationButton();
+  initPincodeLookup();
 }
 
 function updateOrderSummary() {
@@ -1105,6 +1109,168 @@ function showOrderSuccess() {
 
   if (form) form.style.display = 'none';
   if (successDiv) successDiv.style.display = 'block';
+}
+
+// ============ Location & Pincode Helpers ============
+
+function initLocationButton() {
+  const btn = document.getElementById('btnUseLocation');
+  if (!btn) return;
+
+  btn.addEventListener('click', function(e) {
+    e.preventDefault();
+    getUserLocation();
+  });
+}
+
+function getUserLocation() {
+  const btn = document.getElementById('btnUseLocation');
+  if (!btn) return;
+
+  if (!navigator.geolocation) {
+    setLocationBtnState('error', 'Not supported on this device');
+    return;
+  }
+
+  btn.classList.add('btn-location--loading');
+  btn.querySelector('span').textContent = 'Getting location...';
+
+  navigator.geolocation.getCurrentPosition(
+    function(position) {
+      reverseGeocode(position.coords.latitude, position.coords.longitude);
+    },
+    function(error) {
+      setLocationBtnState('error', 'Location permission denied');
+      setTimeout(() => resetLocationBtn(), 2000);
+    },
+    { enableHighAccuracy: true, timeout: 10000, maximumAge: 60000 }
+  );
+}
+
+function reverseGeocode(lat, lng) {
+  const btn = document.getElementById('btnUseLocation');
+  const url = `https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=json&addressdetails=1`;
+
+  fetch(url, {
+    headers: { 'User-Agent': 'PobitraGhee/1.0' }
+  })
+    .then(r => r.json())
+    .then(data => {
+      const addr = data.address || {};
+
+      const road = addr.road || '';
+      const suburb = addr.suburb || addr.neighbourhood || addr.village || addr.town || '';
+      const city = addr.city || addr.town || addr.county || suburb;
+      const state = addr.state || '';
+      const pincode = addr.postcode || '';
+
+      // Fill fields
+      if (road) {
+        const line2 = document.getElementById('addrLine2');
+        if (line2) line2.value = road;
+      }
+
+      if (suburb && !road) {
+        const line2 = document.getElementById('addrLine2');
+        if (line2) line2.value = suburb;
+      } else if (suburb) {
+        const existing = document.getElementById('addrLine2')?.value || '';
+        if (!existing.includes(suburb)) {
+          const line2 = document.getElementById('addrLine2');
+          if (line2) line2.value = road + ', ' + suburb;
+        }
+      }
+
+      if (city) {
+        const cityField = document.getElementById('addrCity');
+        if (cityField) cityField.value = city;
+      }
+
+      if (state) {
+        const stateField = document.getElementById('addrState');
+        if (stateField) {
+          // Try to match the state in the select options
+          for (const opt of stateField.options) {
+            if (opt.value.toLowerCase() === state.toLowerCase()) {
+              stateField.value = opt.value;
+              break;
+            }
+          }
+        }
+      }
+
+      if (pincode) {
+        const pinField = document.getElementById('addrPincode');
+        if (pinField) pinField.value = pincode;
+        // Also fetch city/state from pincode for better accuracy
+        fetchPincodeDetails(pincode);
+      }
+
+      setLocationBtnState('success', 'Location filled ✓');
+      setTimeout(() => resetLocationBtn(), 2500);
+    })
+    .catch(() => {
+      setLocationBtnState('error', 'Could not fetch address');
+      setTimeout(() => resetLocationBtn(), 2000);
+    });
+}
+
+function initPincodeLookup() {
+  const pinInput = document.getElementById('addrPincode');
+  if (!pinInput) return;
+
+  let debounceTimer;
+  pinInput.addEventListener('input', function() {
+    clearTimeout(debounceTimer);
+    const val = this.value.replace(/\D/g, '');
+    this.value = val;
+    if (val.length === 6) {
+      debounceTimer = setTimeout(() => fetchPincodeDetails(val), 400);
+    }
+  });
+}
+
+function fetchPincodeDetails(pincode) {
+  const cityField = document.getElementById('addrCity');
+  const stateField = document.getElementById('addrState');
+  if (!cityField || !stateField) return;
+
+  fetch('https://api.postalpincode.in/pincode/' + pincode)
+    .then(r => r.json())
+    .then(data => {
+      if (data[0]?.Status === 'Success' && data[0]?.PostOffice?.length > 0) {
+        const po = data[0].PostOffice[0];
+        if (po.District && !cityField.value) {
+          cityField.value = po.District;
+        }
+        if (po.State && !stateField.value) {
+          for (const opt of stateField.options) {
+            if (opt.value.toLowerCase() === po.State.toLowerCase()) {
+              stateField.value = opt.value;
+              break;
+            }
+          }
+        }
+      }
+    })
+    .catch(() => {});
+}
+
+function setLocationBtnState(type, text) {
+  const btn = document.getElementById('btnUseLocation');
+  if (!btn) return;
+  btn.classList.remove('btn-location--loading', 'btn-location--success', 'btn-location--error');
+  btn.classList.add('btn-location--' + type);
+  const span = btn.querySelector('span');
+  if (span) span.textContent = text;
+}
+
+function resetLocationBtn() {
+  const btn = document.getElementById('btnUseLocation');
+  if (!btn) return;
+  btn.classList.remove('btn-location--loading', 'btn-location--success', 'btn-location--error');
+  const span = btn.querySelector('span');
+  if (span) span.textContent = 'Use My Location';
 }
 
 // ============ Review Form ============
