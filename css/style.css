@@ -208,8 +208,10 @@ table {
 }
 
 @supports not selector(::-webkit-scrollbar) {
-  scrollbar-width: thin;
-  scrollbar-color: var(--gold-medium) var(--stone-900);
+  html {
+    scrollbar-width: thin;
+    scrollbar-color: var(--gold-medium) var(--stone-900);
+  }
 }
 
 /* Selection Color */
@@ -2765,6 +2767,7 @@ table {
   background: transparent;
   border: none;
   -moz-appearance: textfield;
+  appearance: textfield;
 }
 
 .quantity__input::-webkit-outer-spin-button,
