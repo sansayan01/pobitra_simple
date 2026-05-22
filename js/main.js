@@ -1018,7 +1018,6 @@ function handleOrderSubmit() {
   const name = document.getElementById('customerName')?.value.trim();
   const phone = document.getElementById('customerPhone')?.value.trim();
   const addrLine1 = document.getElementById('addrLine1')?.value.trim();
-  const addrLine2 = document.getElementById('addrLine2')?.value.trim();
   const addrLandmark = document.getElementById('addrLandmark')?.value.trim();
   const addrPincode = document.getElementById('addrPincode')?.value.trim();
   const addrCity = document.getElementById('addrCity')?.value.trim();
@@ -1055,7 +1054,6 @@ function handleOrderSubmit() {
 
   // Build full address
   let fullAddress = addrLine1;
-  if (addrLine2) fullAddress += `, ${addrLine2}`;
   if (addrLandmark) fullAddress += `, Landmark: ${addrLandmark}`;
   fullAddress += `, ${addrCity}, ${addrState} - ${addrPincode}`;
 
@@ -1165,19 +1163,10 @@ function reverseGeocode(lat, lng) {
       const pincode = addr.postcode || '';
 
       // Fill fields
-      if (road) {
-        const line2 = document.getElementById('addrLine2');
-        if (line2) line2.value = road;
-      }
-
-      if (suburb && !road) {
-        const line2 = document.getElementById('addrLine2');
-        if (line2) line2.value = suburb;
-      } else if (suburb) {
-        const existing = document.getElementById('addrLine2')?.value || '';
-        if (!existing.includes(suburb)) {
-          const line2 = document.getElementById('addrLine2');
-          if (line2) line2.value = road + ', ' + suburb;
+      if (road || suburb) {
+        const line1 = document.getElementById('addrLine1');
+        if (line1 && !line1.value) {
+          line1.value = [road, suburb].filter(Boolean).join(', ');
         }
       }
 
